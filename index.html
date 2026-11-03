@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>🎃 Summon a Song</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="fog"></div>
+  <header class="hero">
+    <div class="bats">🦇 🎃 🦇</div>
+    <h1 id="party-name">Spooky Birthday Bash</h1>
+    <p class="sub" id="party-sub"></p>
+    <p class="demo-banner" id="demo-banner" hidden>Demo mode — songs are only saved in this browser.</p>
+  </header>
+
+  <main>
+    <section class="card" id="who">
+      <label for="name">Who dares enter?</label>
+      <div class="row">
+        <input id="name" placeholder="Your name" maxlength="40" autocomplete="name">
+      </div>
+    </section>
+
+    <section class="card" id="summon">
+      <div class="summon-head">
+        <h2>Summon a song</h2>
+        <div id="counter" class="counter"></div>
+      </div>
+      <p class="hint">Paste a link from <b>SoundCloud</b>, <b>Spotify</b>, <b>Apple Music</b>, <b>YouTube</b> or <b>YouTube Music</b>.</p>
+      <input id="link" placeholder="https://soundcloud.com/…" inputmode="url">
+      <div id="manual" hidden>
+        <p class="hint" id="manual-msg"></p>
+        <div class="row">
+          <input id="m-artist" placeholder="Artist">
+          <input id="m-title" placeholder="Song title">
+        </div>
+      </div>
+      <div id="preview"></div>
+      <details class="extra">
+        <summary>Got a free download link? (bootlegs/edits)</summary>
+        <input id="freedl" placeholder="Hypeddit / Dropbox / SoundCloud download link">
+      </details>
+      <button id="submit" class="btn big" disabled>🎃 Summon it</button>
+    </section>
+
+    <section id="board"></section>
+
+    <section>
+      <div class="list-head">
+        <h2>The Master Playlist</h2>
+        <input id="search" placeholder="Search…">
+      </div>
+      <div id="playlist" class="list"></div>
+    </section>
+
+    <section id="pending-wrap" hidden>
+      <h2>🕯️ Awaiting the DJ's judgment</h2>
+      <div id="pending" class="list"></div>
+    </section>
+
+    <details id="graveyard-wrap" class="graveyard" hidden>
+      <summary>🪦 The Graveyard <span id="grave-count"></span></summary>
+      <div id="graveyard" class="list"></div>
+    </details>
+  </main>
+
+  <footer>Made with 🩸 for one night only.</footer>
+  <div id="toast" class="toast"></div>
+  <script type="module" src="guest.js"></script>
+</body>
+</html>

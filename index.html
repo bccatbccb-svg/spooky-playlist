@@ -30,8 +30,14 @@
         <h2>Summon a song</h2>
         <div id="counter" class="counter"></div>
       </div>
-      <p class="hint">Paste a link from <b>SoundCloud</b>, <b>Spotify</b>, <b>Apple Music</b>, <b>YouTube</b> or <b>YouTube Music</b>.</p>
-      <input id="link" placeholder="https://soundcloud.com/…" inputmode="url">
+      <div class="search-wrap">
+        <input id="q" placeholder="🔍 Search a song or artist…" autocomplete="off">
+        <div id="results" class="results" hidden></div>
+      </div>
+      <details class="extra" id="paste-wrap">
+        <summary>Can't find it? (SoundCloud bootlegs, remixes) → paste a link</summary>
+        <input id="link" placeholder="https://soundcloud.com/… (or Spotify / Apple / YouTube link)" inputmode="url">
+      </details>
       <div id="manual" hidden>
         <p class="hint" id="manual-msg"></p>
         <div class="row">

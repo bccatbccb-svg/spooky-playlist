@@ -99,6 +99,40 @@ function renderBoard() {
     ${top.map((p, i) => `<div class="board-row"><span>${titles[i]}</span><b>${esc(p.name)}</b><span class="dim">${p.songs} song${p.songs > 1 ? 's' : ''} · 🔥${p.fire}</span></div>`).join('')}</div>`;
 }
 
+// ---------- search dropdown ----------
+let searchTimer, searchSeq = 0, results = [];
+$('q').addEventListener('input', () => {
+  clearTimeout(searchTimer);
+  const term = $('q').value.trim();
+  if (term.length < 2) { $('results').hidden = true; return; }
+  searchTimer = setTimeout(async () => {
+    const seq = ++searchSeq;
+    try {
+      const r = await fetch('https://itunes.apple.com/search?entity=song&limit=8&term=' + encodeURIComponent(term));
+      const j = await r.json();
+      if (seq !== searchSeq) return;
+      const seen = new Set();
+      results = (j.results || []).filter(x => { const k = canonicalKey(x.artistName, x.trackName); if (seen.has(k)) return false; seen.add(k); return true; });
+      $('results').innerHTML = results.map((x, i) => {
+        const dup = songs.find(s => s.canonical_key === canonicalKey(x.artistName, x.trackName));
+        return `<button class="result" data-pick="${i}"><img src="${esc(x.artworkUrl60)}" alt=""><span><b>${esc(x.trackName)}</b><small>${esc(x.artistName)}</small></span>${dup ? '<em>🔥 on list</em>' : ''}</button>`;
+      }).join('') + `<button class="result more" data-paste="1">Not here? Paste a SoundCloud/YouTube link →</button>`;
+      $('results').hidden = false;
+    } catch { $('results').innerHTML = '<p class="hint" style="padding:8px">Search is resting — paste a link below instead.</p>'; $('results').hidden = false; }
+  }, 300);
+});
+$('results').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-pick],[data-paste]'); if (!b) return;
+  $('results').hidden = true;
+  if (b.dataset.paste) { $('paste-wrap').open = true; $('link').focus(); return; }
+  const x = results[+b.dataset.pick];
+  preview = finalize({ platform: 'search', source_url: x.trackViewUrl, title: x.trackName, artist: x.artistName,
+    artwork: (x.artworkUrl100 || '').replace(/\d+x\d+bb/, '600x600bb'), links: { apple: x.trackViewUrl }, spotify_uri: '' });
+  $('q').value = `${x.trackName} — ${x.artistName}`;
+  showFields(preview, 'Got it! Fix the artist/title if needed:');
+});
+document.addEventListener('click', (e) => { if (!e.target.closest('.search-wrap')) $('results').hidden = true; });
+
 // ---------- link preview ----------
 let resolveTimer, resolveSeq = 0;
 $('link').addEventListener('input', () => {
@@ -145,7 +179,7 @@ function findDup() {
 }
 
 function renderPreview() {
-  if (!preview) { if (!$('link').value.trim()) $('preview').innerHTML = ''; updateSubmit(); return; }
+  if (!preview) { if (!$('link').value.trim()) $('preview').innerHTML = ''; $('manual').hidden = true; updateSubmit(); return; }
   if (!preview.title) { $('preview').innerHTML = ''; updateSubmit(); return; }
   const dup = findDup();
   let note = '';
@@ -178,7 +212,7 @@ $('submit').addEventListener('click', async () => {
       const r = await api.submit(myName(), song);
       toast(r.result === 'wildcard' ? '🕯️ Wildcard sent to the DJ for judgment' : r.result === 'duplicate' ? 'Someone beat you to it — counted as an upvote 🔥' : '🎃 Summoned!');
     }
-    $('link').value = ''; $('freedl').value = ''; $('m-artist').value = ''; $('m-title').value = '';
+    $('link').value = ''; $('q').value = ''; $('freedl').value = ''; $('m-artist').value = ''; $('m-title').value = '';
     $('manual').hidden = true; preview = null;
     await refresh();
   } catch (e) { toast('💀 ' + e.message); }

@@ -3,8 +3,8 @@ export default {
   PARTY_NAME: "Spooky Birthday Bash",
   PARTY_SUB: "Saturday · Nov 7 · Summon your songs before the night falls 🦇",
 
-  SUPABASE_URL: "",          // e.g. https://abcd1234.supabase.co
-  SUPABASE_ANON_KEY: "",     // Supabase → Project Settings → API → anon public key
+  SUPABASE_URL: "https://esrwlpgwzfaaypoklmhl.supabase.co",          // e.g. https://abcd1234.supabase.co
+  SUPABASE_ANON_KEY: "sb_publishable_TZ0qVYRlSh5YJt_Ztny17w_-m1aaUGq",     // Supabase → Project Settings → API → anon public key
 
   SPOTIFY_CLIENT_ID: "",     // developer.spotify.com app (only used on the DJ page)
   GETSONGBPM_API_KEY: "",    // optional, getsongbpm.com/api — auto-fills BPM/key

@@ -115,6 +115,19 @@ grant execute on function submit_song, toggle_vote, dj_check, dj_update, dj_set_
 
 alter publication supabase_realtime add table songs, votes;
 
+-- Safety: size limits + no direct writes (everything goes through the functions above)
+alter table songs drop constraint if exists songs_sizes;
+alter table songs add constraint songs_sizes check (
+  length(title) between 1 and 300 and length(coalesce(artist,'')) <= 300
+  and length(canonical_key) <= 700 and length(coalesce(artwork,'')) <= 1000
+  and length(coalesce(source_url,'')) <= 1000 and length(coalesce(free_download,'')) <= 1000
+  and length(links::text) <= 5000 and length(coalesce(submitted_by_name,'')) <= 60
+  and length(coalesce(submitted_by_device,'')) <= 100 and length(coalesce(platform,'')) <= 30);
+alter table votes drop constraint if exists votes_sizes;
+alter table votes add constraint votes_sizes check (length(coalesce(name,'')) <= 60 and length(device_id) <= 100);
+revoke insert, update, delete on songs, votes, settings from anon, authenticated;
+revoke all on settings from anon, authenticated;
+
 -- 👇 CHANGE THIS to your secret DJ word (it goes in your DJ link: dj.html?key=YOUR-WORD)
 insert into settings (id, dj_key) values (1, 'change-me-pumpkin')
 on conflict (id) do update set dj_key = excluded.dj_key;

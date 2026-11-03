@@ -1,4 +1,4 @@
-import { CONFIG, DEMO, api, esc, toast, voteCount, PLATFORM, enc } from './shared.js';
+import { safeUrl, CONFIG, DEMO, api, esc, toast, voteCount, PLATFORM, enc } from './shared.js';
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -99,10 +99,10 @@ async function update(id, fields, quiet) {
 // =====================================================================
 function links(s) {
   const l = s.links || {}, out = [];
-  for (const k of ['soundcloud', 'spotify', 'apple', 'youtubeMusic', 'youtube']) if (l[k]) out.push(`<a class="chip" href="${esc(l[k])}" target="_blank" rel="noopener">${PLATFORM[k].icon}</a>`);
-  if (!l.spotify && l.spotify_search) out.push(`<a class="chip" href="${esc(l.spotify_search)}" target="_blank" rel="noopener" title="Search Spotify">🟢🔎</a>`);
-  if (!l.youtube && l.youtube_search) out.push(`<a class="chip" href="${esc(l.youtube_search)}" target="_blank" rel="noopener" title="Search YouTube">🔎</a>`);
-  if (s.free_download) out.push(`<a class="chip" href="${esc(s.free_download)}" target="_blank" rel="noopener">⬇️ Free DL</a>`);
+  for (const k of ['soundcloud', 'spotify', 'apple', 'youtubeMusic', 'youtube']) if (l[k]) out.push(`<a class="chip" href="${safeUrl(l[k])}" target="_blank" rel="noopener">${PLATFORM[k].icon}</a>`);
+  if (!l.spotify && l.spotify_search) out.push(`<a class="chip" href="${safeUrl(l.spotify_search)}" target="_blank" rel="noopener" title="Search Spotify">🟢🔎</a>`);
+  if (!l.youtube && l.youtube_search) out.push(`<a class="chip" href="${safeUrl(l.youtube_search)}" target="_blank" rel="noopener" title="Search YouTube">🔎</a>`);
+  if (s.free_download) out.push(`<a class="chip" href="${safeUrl(s.free_download)}" target="_blank" rel="noopener">⬇️ Free DL</a>`);
   return out.join('');
 }
 
@@ -147,7 +147,7 @@ function paneSet() {
     if (i > 0) { const tr = transition(list[i - 1], s); html += `<div class="trans ${tr.cls}">${esc(tr.text)}</div>`; }
     html += `<div class="set-row" draggable="true" data-id="${s.id}">
       <span class="num">${i + 1}</span>
-      <img class="art" src="${esc(s.artwork || '')}" alt="" onerror="this.style.visibility='hidden'">
+      <img class="art" src="${safeUrl(s.artwork || '')}" alt="" onerror="this.style.visibility='hidden'">
       <div class="meta"><div class="title">${esc(s.title)}</div><div class="artist">${esc(s.artist || '')} <span class="by">· ${esc(s.submitted_by_name)}${s.is_wildcard ? ' · 🦇' : ''}</span></div></div>
       <input data-bpm="${s.id}" value="${esc(s.bpm ?? '')}" placeholder="BPM" inputmode="decimal">
       <input data-key="${s.id}" value="${esc(s.camelot ?? '')}" placeholder="Key" class="key-pill">
@@ -192,7 +192,7 @@ function bindDrag() {
 
 function songRow(s, actions) {
   return `<div class="song">
-    <img class="art" src="${esc(s.artwork || '')}" alt="" onerror="this.style.visibility='hidden'">
+    <img class="art" src="${safeUrl(s.artwork || '')}" alt="" onerror="this.style.visibility='hidden'">
     <div class="meta"><div class="title">${esc(s.title)}</div><div class="artist">${esc(s.artist || '')}</div>
       <div class="by">by <b>${esc(s.submitted_by_name)}</b> · 🔥 ${voteCount(s)} · ${new Date(s.created_at).toLocaleString()}</div>
       <div class="chips">${links(s)}</div></div>
@@ -210,7 +210,7 @@ function paneSC() {
   const all = setOrder().filter(s => s.links?.soundcloud);
   const todo = all.filter(s => !s.sc_liked), done = all.filter(s => s.sc_liked);
   $('pane').innerHTML = `<p class="hint">Open each track, hit ❤️ on SoundCloud, then tick it off here. Liked tracks show up in Rekordbox's SoundCloud “Likes”.</p>
-    <div class="list">${todo.map(s => songRow(s, `<a class="btn small" href="${esc(s.links.soundcloud)}" target="_blank" rel="noopener">Open ☁️</a><button class="btn ghost small" data-liked="${s.id}">❤️ Liked</button>`)).join('') || '<p class="empty">All SoundCloud tracks liked 🖤</p>'}</div>
+    <div class="list">${todo.map(s => songRow(s, `<a class="btn small" href="${safeUrl(s.links.soundcloud)}" target="_blank" rel="noopener">Open ☁️</a><button class="btn ghost small" data-liked="${s.id}">❤️ Liked</button>`)).join('') || '<p class="empty">All SoundCloud tracks liked 🖤</p>'}</div>
     ${done.length ? `<details class="graveyard"><summary>Already liked (${done.length})</summary><div class="list">${done.map(s => songRow(s, `<button class="btn ghost small" data-unliked="${s.id}">Undo</button>`)).join('')}</div></details>` : ''}`;
 }
 

@@ -5,6 +5,8 @@ export const DEMO = !CONFIG.SUPABASE_URL;
 // ---------- small helpers ----------
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 export const enc = encodeURIComponent;
+// Only allow normal web links (blocks javascript: and other tricks), already HTML-escaped.
+export const safeUrl = (u) => { try { const x = new URL(u); return /^https?:$/.test(x.protocol) ? esc(x.href) : ''; } catch { return ''; } };
 
 export function deviceId() {
   let id = localStorage.getItem('spooky-device');

@@ -1,4 +1,4 @@
-import { CONFIG, DEMO, api, deviceId, resolveLink, finalize, canonicalKey, esc, toast, voteCount, PLATFORM } from './shared.js';
+import { safeUrl, CONFIG, DEMO, api, deviceId, resolveLink, finalize, canonicalKey, esc, toast, voteCount, PLATFORM } from './shared.js';
 
 const $ = (id) => document.getElementById(id);
 const me = deviceId();
@@ -27,8 +27,8 @@ function badges(s) {
 function linkChips(s) {
   const order = ['soundcloud', 'spotify', 'apple', 'youtubeMusic', 'youtube'];
   const l = s.links || {};
-  let html = order.filter(k => l[k]).map(k => `<a class="chip" href="${esc(l[k])}" target="_blank" rel="noopener">${PLATFORM[k].icon} ${PLATFORM[k].label}</a>`).join('');
-  if (!l.youtube && !l.youtubeMusic && l.youtube_search) html += `<a class="chip" href="${esc(l.youtube_search)}" target="_blank" rel="noopener">${PLATFORM.youtube_search.icon} YouTube</a>`;
+  let html = order.filter(k => l[k]).map(k => `<a class="chip" href="${safeUrl(l[k])}" target="_blank" rel="noopener">${PLATFORM[k].icon} ${PLATFORM[k].label}</a>`).join('');
+  if (!l.youtube && !l.youtubeMusic && l.youtube_search) html += `<a class="chip" href="${safeUrl(l.youtube_search)}" target="_blank" rel="noopener">${PLATFORM.youtube_search.icon} YouTube</a>`;
   return html;
 }
 
@@ -40,7 +40,7 @@ function songCard(s, { canVote = true } = {}) {
     ? `<button class="vote mine" disabled title="You summoned this">🔥 ${v}</button>`
     : `<button class="vote ${mine ? 'on' : ''}" data-vote="${s.id}" title="${mine ? 'Remove upvote' : 'Upvote'}">🔥 ${v}</button>`;
   return `<div class="song ${s.submitted_by_device === me ? 'yours' : ''}">
-    <img class="art" src="${esc(s.artwork || '')}" alt="" onerror="this.style.visibility='hidden'">
+    <img class="art" src="${safeUrl(s.artwork || '')}" alt="" onerror="this.style.visibility='hidden'">
     <div class="meta">
       <div class="title">${esc(s.title)}</div>
       <div class="artist">${esc(s.artist || 'Unknown artist')}</div>
@@ -115,7 +115,7 @@ $('q').addEventListener('input', () => {
       results = (j.results || []).filter(x => { const k = canonicalKey(x.artistName, x.trackName); if (seen.has(k)) return false; seen.add(k); return true; });
       $('results').innerHTML = results.map((x, i) => {
         const dup = songs.find(s => s.canonical_key === canonicalKey(x.artistName, x.trackName));
-        return `<button class="result" data-pick="${i}"><img src="${esc(x.artworkUrl60)}" alt=""><span><b>${esc(x.trackName)}</b><small>${esc(x.artistName)}</small></span>${dup ? '<em>🔥 on list</em>' : ''}</button>`;
+        return `<button class="result" data-pick="${i}"><img src="${safeUrl(x.artworkUrl60)}" alt=""><span><b>${esc(x.trackName)}</b><small>${esc(x.artistName)}</small></span>${dup ? '<em>🔥 on list</em>' : ''}</button>`;
       }).join('') + `<button class="result more" data-paste="1">Not here? Paste a link below ↓</button>`;
       $('results').hidden = false;
     } catch { $('results').innerHTML = '<p class="hint" style="padding:8px">Search is resting — paste a link below instead.</p>'; $('results').hidden = false; }
@@ -186,7 +186,7 @@ function renderPreview() {
   if (dup?.status === 'graveyard') note = '<p class="error">🪦 This one\'s in the graveyard — the DJ buried it.</p>';
   else if (dup) note = `<p class="dup">👻 Already summoned by <b>${esc(dup.submitted_by_name)}</b> — submitting will upvote it instead (doesn't use a summon).</p>`;
   $('preview').innerHTML = `<div class="song preview">
-    <img class="art" src="${esc(preview.artwork || '')}" alt="" onerror="this.style.visibility='hidden'">
+    <img class="art" src="${safeUrl(preview.artwork || '')}" alt="" onerror="this.style.visibility='hidden'">
     <div class="meta"><div class="title">${esc(preview.title)}</div><div class="artist">${esc(preview.artist || 'Unknown artist')}</div>
     <div class="chips">${linkChips(preview)}</div></div></div>${note}`;
   updateSubmit();

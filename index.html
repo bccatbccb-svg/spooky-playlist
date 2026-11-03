@@ -34,10 +34,11 @@
         <input id="q" placeholder="🔍 Search a song or artist…" autocomplete="off">
         <div id="results" class="results" hidden></div>
       </div>
-      <details class="extra" id="paste-wrap">
-        <summary>Can't find it? (SoundCloud bootlegs, remixes) → paste a link</summary>
-        <input id="link" placeholder="https://soundcloud.com/… (or Spotify / Apple / YouTube link)" inputmode="url">
-      </details>
+      <div class="or"><span>or paste a link</span></div>
+      <div id="paste-wrap">
+        <div class="apps">🟢 Spotify · 🍎 Apple Music · ▶️ YouTube · ☁️ SoundCloud</div>
+        <input id="link" placeholder="Paste a song link…" inputmode="url" autocomplete="off">
+      </div>
       <div id="manual" hidden>
         <p class="hint" id="manual-msg"></p>
         <div class="row">
@@ -46,10 +47,10 @@
         </div>
       </div>
       <div id="preview"></div>
-      <details class="extra">
-        <summary>Got a free download link? (bootlegs/edits)</summary>
-        <input id="freedl" placeholder="Hypeddit / Dropbox / SoundCloud download link">
-      </details>
+      <div id="freedl-wrap" class="extra" hidden>
+        <label for="freedl">☁️ SoundCloud free download link? (optional)</label>
+        <input id="freedl" placeholder="Paste the download link if the track has one" inputmode="url">
+      </div>
       <button id="submit" class="btn big" disabled>🎃 Summon it</button>
     </section>
 

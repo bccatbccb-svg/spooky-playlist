@@ -116,7 +116,7 @@ $('q').addEventListener('input', () => {
       $('results').innerHTML = results.map((x, i) => {
         const dup = songs.find(s => s.canonical_key === canonicalKey(x.artistName, x.trackName));
         return `<button class="result" data-pick="${i}"><img src="${esc(x.artworkUrl60)}" alt=""><span><b>${esc(x.trackName)}</b><small>${esc(x.artistName)}</small></span>${dup ? '<em>🔥 on list</em>' : ''}</button>`;
-      }).join('') + `<button class="result more" data-paste="1">Not here? Paste a SoundCloud/YouTube link →</button>`;
+      }).join('') + `<button class="result more" data-paste="1">Not here? Paste a link below ↓</button>`;
       $('results').hidden = false;
     } catch { $('results').innerHTML = '<p class="hint" style="padding:8px">Search is resting — paste a link below instead.</p>'; $('results').hidden = false; }
   }, 300);
@@ -124,7 +124,7 @@ $('q').addEventListener('input', () => {
 $('results').addEventListener('click', (e) => {
   const b = e.target.closest('[data-pick],[data-paste]'); if (!b) return;
   $('results').hidden = true;
-  if (b.dataset.paste) { $('paste-wrap').open = true; $('link').focus(); return; }
+  if (b.dataset.paste) { $('link').focus(); return; }
   const x = results[+b.dataset.pick];
   preview = finalize({ platform: 'search', source_url: x.trackViewUrl, title: x.trackName, artist: x.artistName,
     artwork: (x.artworkUrl100 || '').replace(/\d+x\d+bb/, '600x600bb'), links: { apple: x.trackViewUrl }, spotify_uri: '' });
@@ -193,6 +193,7 @@ function renderPreview() {
 }
 
 function updateSubmit() {
+  $('freedl-wrap').hidden = preview?.platform !== 'soundcloud';
   const btn = $('submit');
   const n = songs.filter(s => s.submitted_by_device === me).length;
   const dup = findDup();

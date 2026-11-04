@@ -1,4 +1,4 @@
-import { safeUrl, CONFIG, DEMO, api, deviceId, resolveLink, finalize, canonicalKey, esc, toast, voteCount, PLATFORM } from './shared.js';
+import { safeUrl, CONFIG, DEMO, api, deviceId, resolveLink, finalize, canonicalKey, esc, toast, voteCount, PLATFORM } from './shared.js?v=1793752936';
 
 const $ = (id) => document.getElementById(id);
 const me = deviceId();

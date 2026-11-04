@@ -1,4 +1,4 @@
-import CONFIG from './config.js?v=1793831510';
+import CONFIG from './config.js?v=1793831619';
 export { CONFIG };
 export const DEMO = !CONFIG.SUPABASE_URL;
 

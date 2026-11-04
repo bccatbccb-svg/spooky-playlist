@@ -1,4 +1,4 @@
-import { safeUrl, CONFIG, DEMO, api, esc, toast, voteCount, downCount, PLATFORM, enc } from './shared.js?v=1793831510';
+import { safeUrl, CONFIG, DEMO, api, esc, toast, voteCount, downCount, PLATFORM, enc } from './shared.js?v=1793831619';
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -376,10 +376,33 @@ async function spSync(quiet) {
       catch (e) { if (e.status === 404 || e.status === 405) await sp(`/playlists/${SP.playlist}/tracks`, { method: 'POST', body }); else throw e; }
     }
     for (const id of done) await api.djUpdate(KEY, id, { spotify_synced: true });
-    if (uris.length || !quiet) toast(`🟢 Added ${uris.length} song(s) to Spotify`);
+    const removed = await spPrune();
+    if (uris.length || removed || !quiet) toast(`🟢 Spotify: +${uris.length} added${removed ? ` · −${removed} removed` : ''}`);
     await refresh();
   } catch (e) { toast('💀 Spotify: ' + e.message); }
   syncing = false;
+}
+
+// Remove anything from the Spotify playlist that is no longer in the set (buried or deleted songs).
+async function spPrune() {
+  const keep = new Set(setOrder().map(s => s.spotify_uri).filter(Boolean));
+  let base = `/playlists/${SP.playlist}/items`, have = [];
+  try { await sp(base + '?limit=1'); } catch (e) { if (e.status === 404 || e.status === 405) base = `/playlists/${SP.playlist}/tracks`; else throw e; }
+  for (let off = 0; ; off += 100) {
+    const page = await sp(`${base}?limit=100&offset=${off}`);
+    const items = page?.items || [];
+    for (const it of items) { const u = (it.track || it.item)?.uri; if (u) have.push(u); }
+    if (items.length < 100) break;
+  }
+  const gone = [...new Set(have.filter(u => !keep.has(u) && u.startsWith('spotify:track:')))];
+  for (let i = 0; i < gone.length; i += 100) {
+    const chunk = gone.slice(i, i + 100).map(uri => ({ uri }));
+    try { await sp(base, { method: 'DELETE', body: JSON.stringify(base.endsWith('/items') ? { items: chunk } : { tracks: chunk }) }); }
+    catch (e) { if (base.endsWith('/items')) await sp(`/playlists/${SP.playlist}/tracks`, { method: 'DELETE', body: JSON.stringify({ tracks: chunk }) }); else throw e; }
+  }
+  // Buried songs must be re-added if they're ever resurrected.
+  for (const s of songs.filter(s => s.status !== 'approved' && s.spotify_synced)) await api.djUpdate(KEY, s.id, { spotify_synced: false });
+  return gone.length;
 }
 
 // =====================================================================

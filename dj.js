@@ -1,4 +1,4 @@
-import { safeUrl, CONFIG, DEMO, api, esc, toast, voteCount, downCount, PLATFORM, enc } from './shared.js?v=1793793221';
+import { safeUrl, CONFIG, DEMO, api, esc, toast, voteCount, downCount, PLATFORM, enc } from './shared.js?v=1793793334';
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);

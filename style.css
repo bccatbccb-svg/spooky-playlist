@@ -270,3 +270,5 @@ footer { color: #555; }
 .cursed-board .board-row b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .cursed-board .board-row b small { display: block; font-family: 'Space Grotesk', sans-serif; font-size: 11px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; }
 .cursed-split { margin: 14px 0 4px; font-family: Anton, sans-serif; font-size: 16px; color: #ff6a1a; letter-spacing: .05em; text-transform: uppercase; }
+.grave-head { position: relative; text-align: center; margin-bottom: 10px; }
+.grave-label::after { content: none !important; }

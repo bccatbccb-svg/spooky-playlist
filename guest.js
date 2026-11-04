@@ -1,4 +1,4 @@
-import { safeUrl, CONFIG, DEMO, api, deviceId, resolveLink, finalize, canonicalKey, esc, toast, voteCount, PLATFORM } from './shared.js?v=1793752936';
+import { safeUrl, CONFIG, DEMO, api, deviceId, resolveLink, finalize, canonicalKey, esc, toast, voteCount, downCount, CRINGE_AT, PLATFORM } from './shared.js?v=1793786866';
 
 const $ = (id) => document.getElementById(id);
 const me = deviceId();
@@ -18,6 +18,7 @@ const myName = () => nameInput.value.trim();
 // ---------- badges ----------
 function badges(s) {
   const v = voteCount(s), out = [];
+  if (downCount(s) >= CRINGE_AT) out.push('<span class="badge cringe">🤢 Certified Cringe</span>');
   if (s.is_wildcard && s.status === 'approved') out.push('<span class="badge blessed">🦇 Blessed by the DJ</span>');
   if (v >= 5) out.push('<span class="badge cursed">💀 Cursed Banger</span>');
   else if (v >= 3) out.push('<span class="badge hit">🔥 Hit</span>');
@@ -35,10 +36,11 @@ function linkChips(s) {
 function songCard(s, { canVote = true } = {}) {
   const v = voteCount(s);
   const mine = (s.votes || []).find(x => x.device_id === me);
-  const others = (s.votes || []).filter(x => x.kind !== 'submit').map(x => x.name);
+  const d = downCount(s);
+  const others = (s.votes || []).filter(x => x.kind === 'vote').map(x => x.name);
   const voteBtn = !canVote ? '' : mine?.kind === 'submit'
-    ? `<button class="vote mine" disabled title="You summoned this">${v}</button>`
-    : `<button class="vote ${mine ? 'on' : ''}" data-vote="${s.id}" title="${mine ? 'Remove upvote' : 'Upvote'}">${v}</button>`;
+    ? `<div class="votes"><button class="vote mine" disabled title="You summoned this">${v}</button><span class="down-count" title="Cringe votes">💀 ${d}</span></div>`
+    : `<div class="votes"><button class="vote ${mine?.kind === 'vote' ? 'on' : ''}" data-vote="${s.id}" title="Upvote">${v}</button><button class="down ${mine?.kind === 'down' ? 'on' : ''}" data-down="${s.id}" title="Cringe vote">💀 ${d}</button></div>`;
   return `<div class="song ${s.submitted_by_device === me ? 'yours' : ''}">
     <img class="art" src="${safeUrl(s.artwork || '')}" alt="" onerror="this.style.visibility='hidden'">
     <div class="meta">
@@ -55,7 +57,7 @@ function songCard(s, { canVote = true } = {}) {
 function render() {
   const q = $('search').value.trim().toLowerCase();
   const match = (s) => !q || `${s.title} ${s.artist} ${s.submitted_by_name}`.toLowerCase().includes(q);
-  const byVotes = (a, b) => voteCount(b) - voteCount(a) || a.created_at.localeCompare(b.created_at);
+  const byVotes = (a, b) => (voteCount(b) - downCount(b)) - (voteCount(a) - downCount(a)) || a.created_at.localeCompare(b.created_at);
 
   const approved = songs.filter(s => s.status === 'approved').sort(byVotes);
   const pending = songs.filter(s => s.status === 'pending').sort(byVotes);
@@ -223,10 +225,10 @@ $('submit').addEventListener('click', async () => {
 
 // ---------- votes ----------
 document.addEventListener('click', async (e) => {
-  const b = e.target.closest('[data-vote]'); if (!b) return;
+  const b = e.target.closest('[data-vote],[data-down]'); if (!b) return;
   if (!myName()) { toast('Enter your name first 👻'); nameInput.focus(); return; }
   b.disabled = true;
-  try { await api.toggleVote(myName(), b.dataset.vote); await refresh(); } catch (err) { toast('💀 ' + err.message); b.disabled = false; }
+  try { if (b.dataset.down) await api.toggleDown(myName(), b.dataset.down); else await api.toggleVote(myName(), b.dataset.vote); await refresh(); } catch (err) { toast('💀 ' + err.message); b.disabled = false; }
 });
 $('search').addEventListener('input', render);
 document.querySelectorAll('[data-plat]').forEach(b => b.addEventListener('click', () => { $('link').focus(); $('link').placeholder = 'Paste your ' + b.getAttribute('aria-label') + ' link…'; }));

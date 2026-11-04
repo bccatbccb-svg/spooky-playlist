@@ -1,4 +1,4 @@
-import CONFIG from './config.js?v=1793752936';
+import CONFIG from './config.js?v=1793786866';
 export { CONFIG };
 export const DEMO = !CONFIG.SUPABASE_URL;
 
@@ -20,7 +20,9 @@ export function toast(msg) {
   clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 3500);
 }
 
-export const voteCount = (s) => (s.votes || []).length;
+export const voteCount = (s) => (s.votes || []).filter(v => v.kind !== 'down').length;
+export const downCount = (s) => (s.votes || []).filter(v => v.kind === 'down').length;
+export const CRINGE_AT = 3; // downvotes needed for "Certified Cringe"
 
 // ---------- dedupe ----------
 export function normalize(s) {
@@ -148,6 +150,7 @@ function supaApi() {
     },
     submit: (name, song) => rpc('submit_song', { p_device: deviceId(), p_name: name, p_song: song }),
     toggleVote: (name, id) => rpc('toggle_vote', { p_device: deviceId(), p_name: name, p_song: id }),
+    toggleDown: (name, id) => rpc('toggle_down', { p_device: deviceId(), p_name: name, p_song: id }),
     djCheck: (key) => rpc('dj_check', { p_key: key }),
     djUpdate: (key, id, fields) => rpc('dj_update', { p_key: key, p_id: id, p_fields: fields }),
     djSetOrder: (key, ids) => rpc('dj_set_order', { p_key: key, p_ids: ids }),
@@ -184,11 +187,16 @@ function demoApi() {
       });
       write(db); return { result: wild ? 'wildcard' : 'added', id };
     },
-    async toggleVote(name, id) {
+    async toggleVote(name, id) { return this._toggle(name, id, 'vote'); },
+    async toggleDown(name, id) { return this._toggle(name, id, 'down'); },
+    async _toggle(name, id, kind) {
       const db = read(), me = deviceId(), s = db.songs.find(x => x.id === id);
-      const i = s.votes.findIndex(v => v.device_id === me);
-      if (i >= 0) { if (s.votes[i].kind === 'vote') s.votes.splice(i, 1); write(db); return false; }
-      s.votes.push({ name, device_id: me, kind: 'vote', created_at: new Date().toISOString() }); write(db); return true;
+      const v = s.votes.find(x => x.device_id === me);
+      if (v?.kind === 'submit') throw new Error("You can't vote on your own song");
+      if (v?.kind === kind) s.votes.splice(s.votes.indexOf(v), 1);
+      else if (v) v.kind = kind;
+      else s.votes.push({ name, device_id: me, kind, created_at: new Date().toISOString() });
+      write(db); return true;
     },
     async djCheck(key) { return ok(key); },
     async djUpdate(key, id, fields) {

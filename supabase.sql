@@ -73,11 +73,28 @@ end $$;
 create or replace function toggle_vote(p_device text, p_name text, p_song uuid)
 returns boolean language plpgsql security definer set search_path = public as $$
 begin
+  if exists (select 1 from votes where song_id = p_song and device_id = p_device and kind = 'down') then
+    update votes set kind = 'vote' where song_id = p_song and device_id = p_device;
+    return true;
+  end if;
   if exists (select 1 from votes where song_id = p_song and device_id = p_device) then
     delete from votes where song_id = p_song and device_id = p_device and kind = 'vote';
     return false;
   end if;
   insert into votes(song_id, device_id, name, kind) values (p_song, p_device, p_name, 'vote');
+  return true;
+end $$;
+
+-- Guest: cringe vote (downvote) / undo. Switching from upvote to downvote is allowed.
+create or replace function toggle_down(p_device text, p_name text, p_song uuid)
+returns boolean language plpgsql security definer set search_path = public as $$
+declare v_kind text;
+begin
+  select kind into v_kind from votes where song_id = p_song and device_id = p_device;
+  if v_kind = 'submit' then raise exception 'You can''t vote on your own song'; end if;
+  if v_kind = 'down' then delete from votes where song_id = p_song and device_id = p_device; return false; end if;
+  if v_kind = 'vote' then update votes set kind = 'down' where song_id = p_song and device_id = p_device; return true; end if;
+  insert into votes(song_id, device_id, name, kind) values (p_song, p_device, p_name, 'down');
   return true;
 end $$;
 
@@ -111,7 +128,7 @@ begin
   from unnest(p_ids) with ordinality as o(id, pos) where s.id = o.id;
 end $$;
 
-grant execute on function submit_song, toggle_vote, dj_check, dj_update, dj_set_order to anon;
+grant execute on function submit_song, toggle_vote, toggle_down, dj_check, dj_update, dj_set_order to anon;
 
 alter publication supabase_realtime add table songs, votes;
 

@@ -1,4 +1,4 @@
-import { safeUrl, CONFIG, DEMO, api, esc, toast, voteCount, PLATFORM, enc } from './shared.js?v=1793752936';
+import { safeUrl, CONFIG, DEMO, api, esc, toast, voteCount, downCount, PLATFORM, enc } from './shared.js?v=1793786866';
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -152,7 +152,7 @@ function paneSet() {
       <div class="meta"><div class="title">${esc(s.title)}</div><div class="artist">${esc(s.artist || '')} <span class="by">· ${esc(s.submitted_by_name)}${s.is_wildcard ? ' · 🦇' : ''}</span></div></div>
       <input data-bpm="${s.id}" value="${esc(s.bpm ?? '')}" placeholder="BPM" inputmode="decimal">
       <input data-key="${s.id}" value="${esc(s.camelot ?? '')}" placeholder="Key" class="key-pill">
-      <span class="votes-col">▲ ${voteCount(s)}</span>
+      <span class="votes-col">▲ ${voteCount(s)} · 💀 ${downCount(s)}</span>
       <div class="acts">${links(s)}<button class="btn ghost small" data-status="graveyard" data-id2="${s.id}" title="Send to graveyard">🪦</button></div>
     </div>`;
   });
@@ -195,7 +195,7 @@ function songRow(s, actions) {
   return `<div class="song">
     <img class="art" src="${safeUrl(s.artwork || '')}" alt="" onerror="this.style.visibility='hidden'">
     <div class="meta"><div class="title">${esc(s.title)}</div><div class="artist">${esc(s.artist || '')}</div>
-      <div class="by">by <b>${esc(s.submitted_by_name)}</b> · 🔥 ${voteCount(s)} · ${new Date(s.created_at).toLocaleString()}</div>
+      <div class="by">by <b>${esc(s.submitted_by_name)}</b> · ▲ ${voteCount(s)} · 💀 ${downCount(s)} · ${new Date(s.created_at).toLocaleString()}</div>
       <div class="chips">${links(s)}</div></div>
     <div class="acts" style="display:flex;gap:6px;flex-wrap:wrap">${actions}</div>
   </div>`;
@@ -218,11 +218,11 @@ function paneSC() {
 function paneAll() {
   const rows = [...songs].sort((a, b) => voteCount(b) - voteCount(a));
   $('pane').innerHTML = `<div class="card" style="overflow-x:auto"><table>
-    <tr><th>Song</th><th>Status</th><th>🔥</th><th>Summoned by</th><th>Upvoted by</th><th>Links</th><th>BPM</th><th>Key</th><th>When</th></tr>
+    <tr><th>Song</th><th>Status</th><th>▲</th><th>💀</th><th>Summoned by</th><th>Upvoted by</th><th>Links</th><th>BPM</th><th>Key</th><th>When</th></tr>
     ${rows.map(s => `<tr><td><b>${esc(s.title)}</b><br><span class="dim" style="margin:0">${esc(s.artist || '')}</span></td>
       <td><span class="status ${s.status}">${s.status === 'pending' ? 'wildcard' : s.status}</span>${s.is_wildcard && s.status === 'approved' ? ' 🦇' : ''}</td>
-      <td>${voteCount(s)}</td><td>${esc(s.submitted_by_name)}</td>
-      <td>${esc((s.votes || []).filter(v => v.kind !== 'submit').map(v => v.name).join(', '))}</td>
+      <td>${voteCount(s)}</td><td>${downCount(s)}</td><td>${esc(s.submitted_by_name)}</td>
+      <td>${esc((s.votes || []).filter(v => v.kind === 'vote').map(v => v.name).join(', '))}</td>
       <td><div class="chips" style="margin:0">${links(s)}</div></td><td>${esc(s.bpm ?? '')}</td><td>${esc(s.camelot ?? '')}</td>
       <td>${new Date(s.created_at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</td></tr>`).join('')}
   </table></div>`;

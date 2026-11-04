@@ -301,3 +301,49 @@ footer { color: #5f5578; }
 .poster-hero + main { margin-top: -6px; position: relative; z-index: 2; }
 body { background: #07040d radial-gradient(ellipse 80% 40% at 50% 0, rgba(255,61,201,.18), transparent 70%); }
 @media (min-width: 600px) { .poster-img { border-radius: 0; } }
+
+/* ===== artwork borders from the UI sheet ===== */
+.title-frame { border: 26px solid transparent; border-image: url(assets/title-frame.jpg) 48 / 26px stretch; background: #0b0812; background-clip: padding-box;
+  text-align: center; padding: 2px 6px; margin: 0 0 12px; filter: drop-shadow(0 0 10px rgba(255,106,26,.35)); }
+.title-frame h2, .title-frame .section-title { margin: 0; font-size: 26px; color: #ffe6d2; line-height: 1.05; }
+.title-frame .board-sub { display: block; color: #ffe6d2; font-size: 15px; margin: 2px 0 0; }
+.list-head { margin-top: 30px; }
+.list-head .title-frame { margin-bottom: 6px; }
+
+#who.card.ornate { border: 30px solid transparent; border-image: url(assets/card-frame.jpg) 62 / 30px stretch; border-radius: 0;
+  background: #0b0812; background-clip: padding-box; padding: 0 4px 6px; margin: 18px 6px; box-shadow: none; }
+#who.ornate label { font-size: 21px; font-weight: 500; color: #ffe6d2; margin: -8px 0 12px; }
+
+#summon.card.neon { position: relative; border: 3px solid transparent; border-radius: 22px; overflow: visible;
+  background: linear-gradient(#17121f, #17121f) padding-box, linear-gradient(135deg, #ff3dc9 0%, #a77bff 50%, #2ef2ff 100%) border-box;
+  box-shadow: -6px 0 22px -6px rgba(255,61,201,.6), 6px 0 22px -6px rgba(46,242,255,.6), 0 18px 40px rgba(0,0,0,.6); padding-bottom: 54px; }
+.summon-head h2 { font-family: Anton, sans-serif; text-transform: uppercase; color: #f2ece6; font-size: 24px; }
+.counter { font-family: Anton, sans-serif; font-weight: 400; text-transform: uppercase; letter-spacing: .02em; font-size: 13px; border-radius: 99px; }
+.corner-mush { position: absolute; bottom: -12px; pointer-events: none; z-index: 3; }
+.corner-mush.l { left: -14px; width: 92px; } .corner-mush.r { right: -12px; width: 74px; }
+
+input, select { border: 2.5px solid #2ef2ff; border-radius: 14px; background: #0b0812; min-height: 48px;
+  box-shadow: 0 0 10px rgba(46,242,255,.45), inset 0 0 8px rgba(46,242,255,.12); }
+input::placeholder { color: #9b93ad; }
+input:focus, select:focus { border-color: #7ff8ff; box-shadow: 0 0 18px rgba(46,242,255,.7), inset 0 0 10px rgba(46,242,255,.2); }
+.search-wrap::before, .search-wrap::after { content: ""; position: absolute; pointer-events: none; width: 6px; height: 6px; border-radius: 50%; }
+.search-wrap::before { right: -6px; top: -8px; background: #a6ff3d; box-shadow: 0 0 8px #a6ff3d, -14px -2px 0 -1px #ff3dc9, 6px 12px 0 -2px #a6ff3d; }
+.search-wrap::after { left: -6px; bottom: -8px; background: #ff3dc9; box-shadow: 0 0 8px #ff3dc9, 16px 4px 0 -1px #a6ff3d, -2px -12px 0 -2px #2ef2ff; }
+
+.vote { border: 2.5px solid #ff6a1a; border-radius: 12px; background: rgba(255,106,26,.08); color: #fff; font: 500 17px "Space Grotesk"; min-width: 76px; padding: 6px 8px;
+  box-shadow: 0 0 12px rgba(255,106,26,.55), inset 0 0 8px rgba(255,106,26,.2); }
+.vote::before { content: "+ "; color: #ff6a1a; font-size: 17px; }
+.vote::after { content: " ▲"; color: #6dff3d; font-size: 14px; }
+.vote.on { background: rgba(255,106,26,.35); color: #fff; }
+.vote.mine { border-color: #ff6a1a; opacity: .75; color: #fff; background: rgba(255,106,26,.05); }
+.vote.mine::before { content: ""; }
+.badge { background: transparent !important; border: 2px solid; border-radius: 99px; padding: 1px 9px; font-weight: 500; }
+.badge.hit { border-color: #ffb21a; color: #ffd27a !important; box-shadow: 0 0 8px rgba(255,178,26,.5); }
+.badge.cursed { border-color: #ff3dc9; color: #ff8ae0 !important; box-shadow: 0 0 8px rgba(255,61,201,.55); }
+.badge.blessed { border-color: #a6ff3d; color: #cfff9b !important; box-shadow: 0 0 8px rgba(166,255,61,.5); }
+.graveyard .chip, .badge.vetoed { border-color: #6b6577; color: #cfc8da; }
+
+main > section > .list { border: 26px solid transparent; border-image: url(assets/card-frame.jpg) 62 / 26px stretch; border-radius: 0; background: #0b0812; background-clip: padding-box; }
+main > section > .list .song { padding: 9px 4px; }
+.board > .board-row:nth-of-type(2) { --c: #ffb03a; } .board > .board-row:nth-of-type(3) { --c: #ff3dc9; } .board > .board-row:nth-of-type(4) { --c: #b05cff; }
+.board > .board-row:nth-of-type(5) { --c: #6b6bff; } .board > .board-row:nth-of-type(6) { --c: #2ef2ff; }

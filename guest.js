@@ -95,7 +95,7 @@ function renderBoard() {
   const top = Object.values(people).sort((a, b) => (b.fire + b.songs) - (a.fire + a.songs)).slice(0, 5);
   if (!top.length) { $('board').innerHTML = ''; return; }
   const titles = ['1', '2', '3', '4', '5']; const ranks = ['Head Ghoul', 'Vampire Lord', 'Head Witch', 'Spider Queen', 'Zombie'];
-  $('board').innerHTML = `<div class="card board"><h2>Leaderboard</h2><span class="board-sub">of the Damned</span>
+  $('board').innerHTML = `<div class="card board"><div class="title-frame"><h2>Leaderboard</h2><span class="board-sub">of the Damned</span></div>
     ${top.map((p, i) => `<div class="board-row"><span>${titles[i]}</span><b>${ranks[i]}</b><span class="dim">${esc(p.name)} · ${p.songs}♪ ${p.fire}▲</span></div>`).join('')}</div>`;
 }
 

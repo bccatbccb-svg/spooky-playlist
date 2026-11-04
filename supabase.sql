@@ -18,6 +18,7 @@ create table if not exists songs (
   camelot text,
   status text not null default 'approved' check (status in ('approved','pending','graveyard')),
   is_wildcard boolean default false,
+  birthday boolean default false,
   submitted_by_name text,
   submitted_by_device text,
   set_position int,
@@ -47,23 +48,32 @@ create policy "read votes" on votes for select using (true);
 -- Guest: submit a song. 5 go straight in, 6-8 are wildcards, then stop.
 create or replace function submit_song(p_device text, p_name text, p_song jsonb)
 returns jsonb language plpgsql security definer set search_path = public as $$
-declare v_id uuid; v_status text; v_count int; v_wild boolean;
+declare v_id uuid; v_status text; v_count int; v_wild boolean; v_bday boolean;
 begin
   if coalesce(trim(p_name),'') = '' then raise exception 'Tell us your name first'; end if;
+  v_bday := lower(trim(p_name)) = 'andras';
   select id, status into v_id, v_status from songs where canonical_key = p_song->>'canonical_key';
   if v_id is not null then
     insert into votes(song_id, device_id, name, kind) values (v_id, p_device, p_name, 'vote') on conflict do nothing;
+    if v_bday then
+      update songs set birthday = true, status = case when status = 'pending' then 'approved' else status end where id = v_id;
+    end if;
     return jsonb_build_object('result','duplicate','id',v_id,'status',v_status);
   end if;
   select count(*) into v_count from songs where submitted_by_device = p_device;
-  if v_count >= 8 then raise exception 'You''ve used all 8 summons'; end if;
-  v_wild := v_count >= 5;
+  if v_bday then
+    if v_count >= 60 then raise exception 'Even birthday boys have limits (60)'; end if;
+    v_wild := false;
+  else
+    if v_count >= 8 then raise exception 'You''ve used all 8 summons'; end if;
+    v_wild := v_count >= 5;
+  end if;
   insert into songs(canonical_key,title,artist,artwork,platform,source_url,links,spotify_uri,free_download,
-                    status,is_wildcard,submitted_by_name,submitted_by_device)
+                    status,is_wildcard,birthday,submitted_by_name,submitted_by_device)
   values (p_song->>'canonical_key', p_song->>'title', p_song->>'artist', p_song->>'artwork', p_song->>'platform',
           p_song->>'source_url', coalesce(p_song->'links','{}'::jsonb), nullif(p_song->>'spotify_uri',''),
           nullif(p_song->>'free_download',''),
-          case when v_wild then 'pending' else 'approved' end, v_wild, trim(p_name), p_device)
+          case when v_wild then 'pending' else 'approved' end, v_wild, v_bday, trim(p_name), p_device)
   returning id into v_id;
   insert into votes(song_id, device_id, name, kind) values (v_id, p_device, trim(p_name), 'submit');
   return jsonb_build_object('result', case when v_wild then 'wildcard' else 'added' end, 'id', v_id);

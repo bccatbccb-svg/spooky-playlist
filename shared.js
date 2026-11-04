@@ -1,4 +1,4 @@
-import CONFIG from './config.js?v=1793812686';
+import CONFIG from './config.js?v=1793831284';
 export { CONFIG };
 export const DEMO = !CONFIG.SUPABASE_URL;
 
@@ -157,6 +157,9 @@ function supaApi() {
   };
 }
 
+export const BDAY_NAME = 'andras';
+export const isBday = (name) => (name || '').trim().toLowerCase() === BDAY_NAME;
+
 // Demo mode: everything lives in this browser's localStorage. DJ key is "demo".
 function demoApi() {
   const K = 'spooky-demo-db';
@@ -177,6 +180,12 @@ function demoApi() {
         write(db); return { result: 'duplicate', id: ex.id, status: ex.status };
       }
       const n = db.songs.filter(s => s.submitted_by_device === me).length;
+      const bday = isBday(name);
+      if (bday) {
+        db.songs.push({ ...song, id: crypto.randomUUID(), status: 'approved', is_wildcard: false, birthday: true, submitted_by_name: name.trim(),
+          submitted_by_device: me, created_at: new Date().toISOString(), votes: [{ name, device_id: me, kind: 'submit', created_at: new Date().toISOString() }] });
+        write(db); return { result: 'added' };
+      }
       if (n >= CONFIG.TOTAL_LIMIT) throw new Error(`You've used all ${CONFIG.TOTAL_LIMIT} summons`);
       const wild = n >= CONFIG.AUTO_LIMIT;
       const id = crypto.randomUUID?.() || String(Date.now());

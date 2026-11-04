@@ -1,4 +1,4 @@
-import { safeUrl, CONFIG, DEMO, api, deviceId, resolveLink, finalize, canonicalKey, esc, toast, voteCount, downCount, CRINGE_AT, PLATFORM } from './shared.js?v=1793812686';
+import { safeUrl, CONFIG, DEMO, api, deviceId, resolveLink, finalize, canonicalKey, esc, toast, isBday, voteCount, downCount, CRINGE_AT, PLATFORM } from './shared.js?v=1793831284';
 
 const $ = (id) => document.getElementById(id);
 const me = deviceId();
@@ -12,12 +12,13 @@ document.title = '🎃 ' + CONFIG.PARTY_NAME;
 
 const nameInput = $('name');
 nameInput.value = localStorage.getItem('spooky-name') || '';
-nameInput.addEventListener('input', () => { localStorage.setItem('spooky-name', nameInput.value.trim()); updateSubmit(); });
+nameInput.addEventListener('input', () => { localStorage.setItem('spooky-name', nameInput.value.trim()); renderCounter(); });
 const myName = () => nameInput.value.trim();
 
 // ---------- badges ----------
 function badges(s) {
   const v = voteCount(s), out = [];
+  if (s.birthday) out.push('<span class="badge bday">🎂 Birthday Boy\'s Pick</span>');
   if (downCount(s) >= CRINGE_AT) out.push('<span class="badge cringe">⚰️ Certified Cursed</span>');
   if (s.is_wildcard && s.status === 'approved') out.push('<span class="badge blessed">🦇 Blessed by the DJ</span>');
   if (v >= 5) out.push('<span class="badge cursed">🎃 Certified Banger</span>');
@@ -41,12 +42,12 @@ function songCard(s, { canVote = true } = {}) {
   const voteBtn = !canVote ? '' : mine?.kind === 'submit'
     ? `<div class="votes"><button class="vote mine" disabled title="You summoned this">${v}</button><span class="down-count" title="Cursed votes">💀 ${d}</span></div>`
     : `<div class="votes"><button class="vote ${mine?.kind === 'vote' ? 'on' : ''}" data-vote="${s.id}" title="Upvote">${v}</button><button class="down ${mine?.kind === 'down' ? 'on' : ''}" data-down="${s.id}" title="Cursed vote">💀 ${d}</button></div>`;
-  return `<div class="song ${s.submitted_by_device === me ? 'yours' : ''}">
+  return `<div class="song ${s.submitted_by_device === me ? 'yours' : ''} ${s.birthday ? 'is-bday' : ''}">
     ${artBtn(s)}
     <div class="meta">
       <div class="title">${esc(s.title)}</div>
       <div class="artist">${esc(s.artist || 'Unknown artist')}</div>
-      <div class="by">summoned by <b>${esc(s.submitted_by_name)}</b>${others.length ? ` · also wanted by ${esc(others.slice(0, 4).join(', '))}${others.length > 4 ? ` +${others.length - 4}` : ''}` : ''}</div>
+      <div class="by">summoned by <b>${s.birthday ? '👑 ' : ''}${esc(s.submitted_by_name)}</b>${others.length ? ` · also wanted by ${esc(others.slice(0, 4).join(', '))}${others.length > 4 ? ` +${others.length - 4}` : ''}` : ''}</div>
       <div class="chips">${badges(s)}${linkChips(s)}</div>
     </div>
     ${voteBtn}
@@ -80,6 +81,7 @@ function renderCounter() {
   const n = songs.filter(s => s.submitted_by_device === me).length;
   const auto = Math.max(0, CONFIG.AUTO_LIMIT - n);
   const wild = Math.min(CONFIG.TOTAL_LIMIT - CONFIG.AUTO_LIMIT, CONFIG.TOTAL_LIMIT - n);
+  if (isBday(myName())) { $('counter').innerHTML = '🎂 Unlimited summons · your night'; updateSubmit(); return; }
   $('counter').innerHTML = auto > 0
     ? `${auto} of ${CONFIG.AUTO_LIMIT} summons left`
     : wild > 0 ? `${wild} wildcard${wild > 1 ? 's' : ''} left · DJ decides`
@@ -213,8 +215,8 @@ function updateSubmit() {
   const btn = $('submit');
   const n = songs.filter(s => s.submitted_by_device === me).length;
   const dup = findDup();
-  btn.disabled = !myName() || !preview?.title || dup?.status === 'graveyard' || (!dup && n >= CONFIG.TOTAL_LIMIT);
-  btn.textContent = !myName() ? 'Enter your name first' : dup ? 'Upvote it instead' : n >= CONFIG.AUTO_LIMIT ? 'Send as wildcard' : 'Summon it';
+  btn.disabled = !myName() || !preview?.title || dup?.status === 'graveyard' || (!dup && !isBday(myName()) && n >= CONFIG.TOTAL_LIMIT);
+  btn.textContent = !myName() ? 'Enter your name first' : dup ? 'Upvote it instead' : !isBday(myName()) && n >= CONFIG.AUTO_LIMIT ? 'Send as wildcard' : 'Summon it';
 }
 
 $('submit').addEventListener('click', async () => {

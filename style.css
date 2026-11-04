@@ -277,3 +277,6 @@ footer { color: #555; }
 .art-wrap .play-ic { position: absolute; inset: 0; display: grid; place-items: center; font-size: 15px; color: #fff; background: rgba(0,0,0,.45); border-radius: 8px; text-shadow: 0 0 8px #ff6a1a; line-height: 1; }
 .art-wrap.playing .play-ic { background: rgba(255,106,26,.45); }
 .art-wrap.playing { box-shadow: 0 0 12px #ff6a1a; }
+/* birthday boy */
+.badge.bday { background: #ff6a1a; color: #000; border-color: #ff6a1a; box-shadow: 0 0 10px #ff6a1a; font-weight: 700; }
+.song.is-bday { box-shadow: 0 0 0 1.5px #ff6a1a, 0 0 18px rgba(255,106,26,.55) !important; }

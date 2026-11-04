@@ -1,4 +1,4 @@
-import { safeUrl, CONFIG, DEMO, api, esc, toast, voteCount, downCount, PLATFORM, enc } from './shared.js?v=1793812686';
+import { safeUrl, CONFIG, DEMO, api, esc, toast, voteCount, downCount, PLATFORM, enc } from './shared.js?v=1793831284';
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -60,6 +60,7 @@ function buildSmartSet(list) {
   const bpms = ready.map(s => +s.bpm);
   const lo = Math.min(...bpms), hi = Math.max(...bpms), range = Math.max(hi - lo, 1);
   const maxV = Math.max(...ready.map(voteCount), 1);
+  const popOf = (s) => s.birthday ? maxV : voteCount(s);
   const N = ready.length;
   const t = (i) => i / (N - 1);
   const targetBpm = (i) => t(i) <= 0.75 ? lo + range * (t(i) / 0.75) : hi - range * 0.4 * ((t(i) - 0.75) / 0.25);
@@ -71,7 +72,7 @@ function buildSmartSet(list) {
     const i = out.length, prev = out[i - 1];
     let best = null, bestCost = Infinity;
     for (const c of pool) {
-      const pop = voteCount(c) / maxV;
+      const pop = popOf(c) / maxV;
       const cost = (keyDist(prev.camelot, c.camelot) ?? 6) * 2.2
         + Math.min(bpmPct(prev.bpm, c.bpm) ?? 20, 20) * 0.5
         + Math.abs(+c.bpm - targetBpm(i)) / range * 6
@@ -149,7 +150,7 @@ function paneSet() {
     html += `<div class="set-row" draggable="true" data-id="${s.id}">
       <span class="num">${i + 1}</span>
       <img class="art" src="${safeUrl(s.artwork || '')}" alt="" onerror="this.style.visibility='hidden'">
-      <div class="meta"><div class="title">${esc(s.title)}</div><div class="artist">${esc(s.artist || '')} <span class="by">· ${esc(s.submitted_by_name)}${s.is_wildcard ? ' · 🦇' : ''}</span></div></div>
+      <div class="meta"><div class="title">${esc(s.title)}</div><div class="artist">${esc(s.artist || '')} <span class="by">· ${s.birthday ? '🎂 ' : ''}${esc(s.submitted_by_name)}${s.is_wildcard ? ' · 🦇' : ''}</span></div></div>
       <input data-bpm="${s.id}" value="${esc(s.bpm ?? '')}" placeholder="BPM" inputmode="decimal">
       <input data-key="${s.id}" value="${esc(s.camelot ?? '')}" placeholder="Key" class="key-pill">
       <span class="votes-col">▲ ${voteCount(s)} · 💀 ${downCount(s)}</span>
@@ -219,7 +220,7 @@ function paneAll() {
   const rows = [...songs].sort((a, b) => voteCount(b) - voteCount(a));
   $('pane').innerHTML = `<div class="card" style="overflow-x:auto"><table>
     <tr><th>Song</th><th>Status</th><th>▲</th><th>💀</th><th>Summoned by</th><th>Upvoted by</th><th>Links</th><th>BPM</th><th>Key</th><th>When</th></tr>
-    ${rows.map(s => `<tr><td><b>${esc(s.title)}</b><br><span class="dim" style="margin:0">${esc(s.artist || '')}</span></td>
+    ${rows.map(s => `<tr><td><b>${s.birthday ? '🎂 ' : ''}${esc(s.title)}</b><br><span class="dim" style="margin:0">${esc(s.artist || '')}</span></td>
       <td><span class="status ${s.status}">${s.status === 'pending' ? 'wildcard' : s.status}</span>${s.is_wildcard && s.status === 'approved' ? ' 🦇' : ''}</td>
       <td>${voteCount(s)}</td><td>${downCount(s)}</td><td>${esc(s.submitted_by_name)}</td>
       <td>${esc((s.votes || []).filter(v => v.kind === 'vote').map(v => v.name).join(', '))}</td>

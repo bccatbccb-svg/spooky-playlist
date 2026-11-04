@@ -5,44 +5,56 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>🎃 Summon a Song</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bowlby+One&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="fog"></div>
-  <header class="hero">
-    <svg class="spider" viewBox="0 0 100 130" aria-hidden="true"><line x1="50" y1="0" x2="50" y2="62" stroke="#ff3dc9" stroke-width="1.2"/>
-<g fill="none" stroke="#f7f0ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-<path d="M44 78 30 64 16 72"/><path d="M43 84 24 78 8 92"/><path d="M44 90 26 96 14 116"/><path d="M46 95 36 108 32 126"/>
-<path d="M56 78 70 64 84 72"/><path d="M57 84 76 78 92 92"/><path d="M56 90 74 96 86 116"/><path d="M54 95 64 108 68 126"/></g>
-<ellipse cx="50" cy="70" rx="8" ry="7" fill="#f7f0ff"/><ellipse cx="50" cy="91" rx="12" ry="15" fill="#f7f0ff"/>
-<circle cx="47" cy="69" r="1.6" fill="#ff3dc9"/><circle cx="53" cy="69" r="1.6" fill="#ff3dc9"/></svg>
-    <div class="eyebrow">Halloween · Birthday · Rave</div>
-    <h1 id="party-name">Spooky Birthday Bash</h1>
-    <p class="sub" id="party-sub"></p>
+  <header class="hero poster-hero">
+    <div class="canopy" aria-hidden="true"></div>
+    <div class="poster"><svg class="poster-art" viewBox="0 0 360 330" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+<rect width="360" height="330" fill="#f26a21"/>
+<path d="M180,175L600,175M180,175L568,336M180,175L477,472M180,175L341,563M180,175L180,595M180,175L19,563M180,175L-117,472M180,175L-208,336M180,175L-240,175M180,175L-208,14M180,175L-117,-122M180,175L19,-213M180,175L180,-245M180,175L341,-213M180,175L477,-122M180,175L568,14M220,175Q214,182 217,190Q209,194 208,203Q199,204 195,212Q187,209 180,215Q173,209 165,212Q161,204 152,203Q151,194 143,190Q146,182 140,175Q146,168 143,160Q151,156 152,147Q161,146 165,138Q173,141 180,135Q187,141 195,138Q199,146 208,147Q209,156 217,160Q214,168 220,175M255,175Q243,188 249,204Q234,211 233,228Q216,229 209,244Q193,238 180,250Q167,238 151,244Q144,229 127,228Q126,211 111,204Q117,188 105,175Q117,162 111,146Q126,139 127,122Q144,121 151,106Q167,112 180,100Q193,112 209,106Q216,121 233,122Q234,139 249,146Q243,162 255,175M295,175Q277,194 286,219Q262,230 261,256Q235,257 224,281Q199,272 180,290Q161,272 136,281Q125,257 99,256Q98,230 74,219Q83,194 65,175Q83,156 74,131Q98,120 99,94Q125,93 136,69Q161,78 180,60Q199,78 224,69Q235,93 261,94Q262,120 286,131Q277,156 295,175M340,175Q315,202 328,236Q294,251 293,288Q256,289 241,323Q207,310 180,335Q153,310 119,323Q104,289 67,288Q66,251 32,236Q45,202 20,175Q45,148 32,114Q66,99 67,62Q104,61 119,27Q153,40 180,15Q207,40 241,27Q256,61 293,62Q294,99 328,114Q315,148 340,175M390,175Q357,210 374,255Q330,275 328,323Q280,325 260,369Q215,352 180,385Q145,352 100,369Q80,325 32,323Q30,275 -14,255Q3,210 -30,175Q3,140 -14,95Q30,75 32,27Q80,25 100,-19Q145,-2 180,-35Q215,-2 260,-19Q280,25 328,27Q330,75 374,95Q357,140 390,175M445,175Q404,219 425,276Q369,302 367,362Q307,364 281,420Q224,399 180,440Q136,399 79,420Q53,364 -7,362Q-9,302 -65,276Q-44,219 -85,175Q-44,131 -65,74Q-9,48 -7,-12Q53,-14 79,-70Q136,-49 180,-90Q224,-49 281,-70Q307,-14 367,-12Q369,48 425,74Q404,131 445,175M505,175Q454,230 480,299Q412,330 410,405Q335,407 304,475Q235,449 180,500Q125,449 56,475Q25,407 -50,405Q-52,330 -120,299Q-94,230 -145,175Q-94,120 -120,51Q-52,20 -50,-55Q25,-57 56,-125Q125,-99 180,-150Q235,-99 304,-125Q335,-57 410,-55Q412,20 480,51Q454,120 505,175" fill="none" stroke="#120806" stroke-width="2.2" opacity=".85"/>
+<g fill="none" stroke="#0b0505" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><path d="M150,130 L105,70 L60,40"/><path d="M140,155 L80,120 L28,118"/><path d="M140,190 L78,200 L30,240"/><path d="M150,220 L105,260 L80,320"/><path d="M222,140 L268,78 L318,50"/><path d="M232,165 L292,128 L345,128"/><path d="M232,200 L296,212 L342,252"/><path d="M222,230 L262,272 L285,325"/></g>
+<g fill="none" stroke="#0b0505" stroke-width="3" stroke-linecap="round"></g>
+<ellipse cx="140" cy="98" rx="58" ry="38" transform="rotate(-30 140 98)" fill="#0b0505"/><ellipse cx="170" cy="138" rx="18" ry="14" fill="#0b0505"/>
+<ellipse cx="192" cy="200" rx="104" ry="84" transform="rotate(-14 192 200)" fill="#0b0505"/>
+<g font-family="'Bowlby One', Anton, sans-serif" fill="#fff6ee" text-anchor="middle">
+<text x="144" y="106" font-size="28" transform="rotate(-30 144 98)">SPOOKY</text>
+<text x="190" y="196" font-size="40" transform="rotate(-14 190 196)">BIRTHDAY</text>
+<text x="200" y="248" font-size="48" transform="rotate(-14 200 240)">BASH</text></g>
+</svg></div>
+    <h1 id="party-name" class="sr-only">Spooky Birthday Bash</h1>
+    <div class="tagline">Halloween · Birthday · Rave</div>
+    <div class="date" id="party-sub"></div>
     <p class="demo-banner" id="demo-banner" hidden>Demo mode — songs are only saved in this browser.</p>
   </header>
 
   <main>
-    <section class="card" id="who">
-      <label for="name">Who dares enter?</label>
+    <section class="card frame" id="who">
+      <svg class="mush left" viewBox="0 0 60 80" aria-hidden="true"><path d="M24 40 Q22 62 18 78 H38 Q34 62 34 40Z" fill="#1a0f2e" stroke="#ff3dc9" stroke-width="2"/>
+<path d="M4 42 Q6 10 30 8 Q54 10 56 42 Q30 34 4 42Z" fill="#1a0f2e" stroke="#ff3dc9" stroke-width="2.4"/>
+<circle cx="20" cy="26" r="4" fill="#ff3dc9"/><circle cx="36" cy="20" r="3" fill="#ff3dc9"/><circle cx="44" cy="32" r="3.5" fill="#ff3dc9"/><circle cx="28" cy="35" r="2.2" fill="#ff3dc9"/></svg><svg class="mush right" viewBox="0 0 60 80" aria-hidden="true"><path d="M24 40 Q22 62 18 78 H38 Q34 62 34 40Z" fill="#1a0f2e" stroke="#a6ff3d" stroke-width="2"/>
+<path d="M4 42 Q6 10 30 8 Q54 10 56 42 Q30 34 4 42Z" fill="#1a0f2e" stroke="#a6ff3d" stroke-width="2.4"/>
+<circle cx="20" cy="26" r="4" fill="#a6ff3d"/><circle cx="36" cy="20" r="3" fill="#a6ff3d"/><circle cx="44" cy="32" r="3.5" fill="#a6ff3d"/><circle cx="28" cy="35" r="2.2" fill="#a6ff3d"/></svg>
+      <label for="name" class="center">Who dares enter?</label>
       <div class="row">
         <input id="name" placeholder="Your name" maxlength="40" autocomplete="name">
       </div>
     </section>
 
-    <section class="card" id="summon">
+    <section class="card neon" id="summon">
       <div class="summon-head">
         <h2>Summon a song</h2>
         <div id="counter" class="counter"></div>
       </div>
       <div class="search-wrap">
-        <input id="q" placeholder="🔍 Search a song or artist…" autocomplete="off">
+        <input id="q" placeholder="Search a song or artist…" autocomplete="off" class="search-input">
         <div id="results" class="results" hidden></div>
       </div>
       <div class="or"><span>or paste a link</span></div>
       <div id="paste-wrap">
-        <div class="apps">🟢 Spotify · 🍎 Apple Music · ▶️ YouTube · ☁️ SoundCloud</div>
+        <div class="ptiles"><button type="button" class="ptile spotify" data-plat="spotify" aria-label="spotify"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#0b0b0b"/><path d="M6.5 9.5c3.8-1.2 7.6-.8 11 .9M7.2 12.6c3-.9 6-.6 8.6.8M8 15.5c2.3-.6 4.5-.4 6.4.6" stroke="#1ed760" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></button><button type="button" class="ptile apple" data-plat="apple" aria-label="apple"><svg viewBox="0 0 24 24"><path d="M10 17.5V6.5l9-2v11" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><circle cx="7.5" cy="17.5" r="2.5" fill="#fff"/><circle cx="16.5" cy="15.5" r="2.5" fill="#fff"/></svg></button><button type="button" class="ptile youtube" data-plat="youtube" aria-label="youtube"><svg viewBox="0 0 24 24"><path d="M9.5 7.5v9l7.5-4.5z" fill="#fff"/></svg></button><button type="button" class="ptile soundcloud" data-plat="soundcloud" aria-label="soundcloud"><svg viewBox="0 0 24 24"><path d="M9 17h9.5a3.5 3.5 0 0 0 0-7 5 5 0 0 0-9.5-1.5z" fill="#fff"/><path d="M3 17v-4M5.5 17v-6M8 17V9" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></button></div>
         <input id="link" placeholder="Paste a song link…" inputmode="url" autocomplete="off">
       </div>
       <div id="manual" hidden>
@@ -54,29 +66,32 @@
       </div>
       <div id="preview"></div>
       <div id="freedl-wrap" class="extra" hidden>
-        <label for="freedl">☁️ SoundCloud free download link? (optional)</label>
+        <label for="freedl">SoundCloud free download link (optional)</label>
         <input id="freedl" placeholder="Paste the download link if the track has one" inputmode="url">
       </div>
-      <button id="submit" class="btn big" disabled>🎃 Summon it</button>
+      <div class="submit-wrap"><button id="submit" class="btn big" disabled>Summon it</button><svg class="drip" viewBox="0 0 300 26" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0H300V4Q290 4 288 14Q286 24 282 14Q280 4 250 6Q230 4 228 20Q226 26 222 18Q220 6 160 5Q120 4 118 12Q116 18 112 12Q110 4 60 6Q40 4 38 16Q36 24 32 15Q30 5 0 5Z" fill="#2ef2ff"/></svg></div>
     </section>
 
     <section id="board"></section>
 
     <section>
       <div class="list-head">
-        <h2>The Master Playlist</h2>
+        <h2 class="section-title">The Master Playlist</h2>
         <input id="search" placeholder="Search…">
       </div>
       <div id="playlist" class="list"></div>
     </section>
 
     <section id="pending-wrap" hidden>
-      <h2>🕯️ Awaiting the DJ's judgment</h2>
+      <h2 class="section-title dim-title">Awaiting the DJ's judgment</h2>
       <div id="pending" class="list"></div>
     </section>
 
     <details id="graveyard-wrap" class="graveyard" hidden>
-      <summary>🪦 The Graveyard <span id="grave-count"></span></summary>
+      <summary><svg class="tombs" viewBox="0 0 360 90" aria-hidden="true"><g fill="#1b1626" stroke="#4a4160" stroke-width="2">
+<path d="M40 90V44a22 22 0 0 1 44 0v46z"/><path d="M110 90V30a28 28 0 0 1 56 0v60z"/><path d="M196 90V50h10V38h10v12h10v40z"/><path d="M260 90V42a20 20 0 0 1 40 0v48z"/></g>
+<g fill="#6d6189" font-family="Anton,sans-serif" font-size="13" text-anchor="middle"><text x="138" y="52">RIP</text><text x="280" y="58">RIP</text></g>
+<path d="M0 90Q90 80 180 88T360 86V90H0z" fill="#120d1c"/></svg><span class="grave-label">Graveyard <span id="grave-count"></span></span></summary>
       <div id="graveyard" class="list"></div>
     </details>
   </main>

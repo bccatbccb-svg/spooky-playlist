@@ -37,8 +37,8 @@ function songCard(s, { canVote = true } = {}) {
   const mine = (s.votes || []).find(x => x.device_id === me);
   const others = (s.votes || []).filter(x => x.kind !== 'submit').map(x => x.name);
   const voteBtn = !canVote ? '' : mine?.kind === 'submit'
-    ? `<button class="vote mine" disabled title="You summoned this">🔥 ${v}</button>`
-    : `<button class="vote ${mine ? 'on' : ''}" data-vote="${s.id}" title="${mine ? 'Remove upvote' : 'Upvote'}">🔥 ${v}</button>`;
+    ? `<button class="vote mine" disabled title="You summoned this">${v}</button>`
+    : `<button class="vote ${mine ? 'on' : ''}" data-vote="${s.id}" title="${mine ? 'Remove upvote' : 'Upvote'}">${v}</button>`;
   return `<div class="song ${s.submitted_by_device === me ? 'yours' : ''}">
     <img class="art" src="${safeUrl(s.artwork || '')}" alt="" onerror="this.style.visibility='hidden'">
     <div class="meta">
@@ -79,9 +79,9 @@ function renderCounter() {
   const auto = Math.max(0, CONFIG.AUTO_LIMIT - n);
   const wild = Math.min(CONFIG.TOTAL_LIMIT - CONFIG.AUTO_LIMIT, CONFIG.TOTAL_LIMIT - n);
   $('counter').innerHTML = auto > 0
-    ? `🎃 <b>${auto}</b> of ${CONFIG.AUTO_LIMIT} summons left`
-    : wild > 0 ? `🔮 <b>${wild}</b> wildcard${wild > 1 ? 's' : ''} left <small>(the DJ decides)</small>`
-    : `⚰️ All summons used — upvote others with 🔥`;
+    ? `${auto} of ${CONFIG.AUTO_LIMIT} summons left`
+    : wild > 0 ? `${wild} wildcard${wild > 1 ? 's' : ''} left · DJ decides`
+    : `All summons used — upvote ▲`;
   updateSubmit();
 }
 
@@ -94,9 +94,9 @@ function renderBoard() {
   }
   const top = Object.values(people).sort((a, b) => (b.fire + b.songs) - (a.fire + a.songs)).slice(0, 5);
   if (!top.length) { $('board').innerHTML = ''; return; }
-  const titles = ['👑 Head Ghoul', '🧛 Vampire Lord', '🧙 Head Witch', '🕷️ Spider Queen', '🧟 Zombie'];
-  $('board').innerHTML = `<div class="card board"><h2>Leaderboard of the Damned</h2>
-    ${top.map((p, i) => `<div class="board-row"><span>${titles[i]}</span><b>${esc(p.name)}</b><span class="dim">${p.songs} song${p.songs > 1 ? 's' : ''} · 🔥${p.fire}</span></div>`).join('')}</div>`;
+  const titles = ['1', '2', '3', '4', '5']; const ranks = ['Head Ghoul', 'Vampire Lord', 'Head Witch', 'Spider Queen', 'Zombie'];
+  $('board').innerHTML = `<div class="card board"><h2>Leaderboard</h2><span class="board-sub">of the Damned</span>
+    ${top.map((p, i) => `<div class="board-row"><span>${titles[i]}</span><b>${ranks[i]}</b><span class="dim">${esc(p.name)} · ${p.songs}♪ ${p.fire}▲</span></div>`).join('')}</div>`;
 }
 
 // ---------- search dropdown ----------
@@ -198,7 +198,7 @@ function updateSubmit() {
   const n = songs.filter(s => s.submitted_by_device === me).length;
   const dup = findDup();
   btn.disabled = !myName() || !preview?.title || dup?.status === 'graveyard' || (!dup && n >= CONFIG.TOTAL_LIMIT);
-  btn.textContent = !myName() ? 'Enter your name first' : dup ? '🔥 Upvote it instead' : n >= CONFIG.AUTO_LIMIT ? '🔮 Send as a wildcard' : '🎃 Summon it';
+  btn.textContent = !myName() ? 'Enter your name first' : dup ? 'Upvote it instead' : n >= CONFIG.AUTO_LIMIT ? 'Send as wildcard' : 'Summon it';
 }
 
 $('submit').addEventListener('click', async () => {
@@ -228,6 +228,7 @@ document.addEventListener('click', async (e) => {
   try { await api.toggleVote(myName(), b.dataset.vote); await refresh(); } catch (err) { toast('💀 ' + err.message); b.disabled = false; }
 });
 $('search').addEventListener('input', render);
+document.querySelectorAll('[data-plat]').forEach(b => b.addEventListener('click', () => { $('link').focus(); $('link').placeholder = 'Paste your ' + b.getAttribute('aria-label') + ' link…'; }));
 
 async function refresh() {
   try { songs = await api.load(); render(); } catch (e) { toast('💀 Could not load playlist: ' + e.message); }

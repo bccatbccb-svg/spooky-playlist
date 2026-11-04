@@ -113,16 +113,17 @@ function render() {
   const scTodo = a.filter(s => s.links?.soundcloud && !s.sc_liked);
   const missing = a.filter(s => !(+s.bpm && s.camelot)).length;
   const people = new Set(songs.flatMap(s => (s.votes || []).map(v => v.device_id))).size;
-  const tabs = [['set', '🎧 Set builder', a.length], ['wild', '🔮 Wildcards', pend.length], ['sc', '☁️ SoundCloud ❤️', scTodo.length],
-    ['spotify', '🟢 Spotify', a.filter(s => s.spotify_uri && !s.spotify_synced).length], ['all', '📜 All requests', songs.length], ['grave', '🪦 Graveyard', grave.length]];
+  const tabs = [['set', 'Set builder', a.length], ['wild', 'Wildcards', pend.length], ['sc', 'SoundCloud', scTodo.length],
+    ['spotify', 'Spotify', a.filter(s => s.spotify_uri && !s.spotify_synced).length], ['all', 'All requests', songs.length], ['grave', 'Graveyard', grave.length]];
 
   $('main').innerHTML = `
     <div class="stats">
-      <div class="stat"><b>${a.length}</b><span>on the playlist</span></div>
-      <div class="stat"><b>${pend.length}</b><span>wildcards to judge</span></div>
-      <div class="stat"><b>${people}</b><span>guests involved</span></div>
-      <div class="stat"><b>${missing}</b><span>missing BPM/key</span></div>
-      <div class="stat"><b>${scTodo.length}</b><span>SoundCloud to ❤️</span></div>
+      <div class="stat"><b>${a.length}</b><span>Songs</span></div>
+      <div class="stat"><b>${pend.length}</b><span>Pending</span></div>
+      <div class="stat"><b>${people}</b><span>Guests</span></div>
+      <div class="stat"><b>${missing}</b><span>Missing BPM</span></div>
+      <div class="stat"><b>${scTodo.length}</b><span>SC likes</span></div>
+      <div class="stat"><b>${grave.length}</b><span>Buried</span></div>
     </div>
     <div class="tabs">${tabs.map(([k, l, n]) => `<button class="tab ${tab === k ? 'active' : ''}" data-tab="${k}">${l}<span class="n">${n}</span></button>`).join('')}</div>
     <div id="pane"></div>`;
@@ -133,16 +134,16 @@ function paneSet() {
   const list = setOrder();
   const hasBpmKey = !!CONFIG.GETSONGBPM_API_KEY;
   let html = `<div class="toolbar">
-      <button class="btn" id="smart">🧠 Build smart set</button>
+      <button class="btn" id="smart">Build smart set</button>
       ${hasBpmKey ? '<button class="btn ghost" id="autofill">🔍 Auto-fill BPM/key</button>' : ''}
-      <button class="btn ghost" id="csv">⬇️ Export CSV</button>
+      <button class="btn ghost" id="csv">Export CSV</button>
       <span class="hint">Drag rows to reorder. Key accepts Camelot (8A) or musical (Am, F#).</span>
     </div>`;
   if (!list.length) { $('pane').innerHTML = html + '<p class="empty">No songs yet 👻</p>'; bindSetTools(); return; }
   const N = list.length;
   list.forEach((s, i) => {
     const q = (j) => Math.min(3, Math.floor((N > 1 ? j / (N - 1) : 0) * 4));
-    const phase = (i === 0 || q(i) !== q(i - 1)) ? ['🌒 Warm-up', '🌓 Build', '🌕 Peak', '🌘 Cool-down'][q(i)] : '';
+    const phase = (i === 0 || q(i) !== q(i - 1)) ? ['Warm-up', 'Build', 'Peak', 'Cool-down'][q(i)] : '';
     if (phase && N >= 6) html += `<div class="phase">${phase}</div>`;
     if (i > 0) { const tr = transition(list[i - 1], s); html += `<div class="trans ${tr.cls}">${esc(tr.text)}</div>`; }
     html += `<div class="set-row" draggable="true" data-id="${s.id}">
@@ -151,7 +152,7 @@ function paneSet() {
       <div class="meta"><div class="title">${esc(s.title)}</div><div class="artist">${esc(s.artist || '')} <span class="by">· ${esc(s.submitted_by_name)}${s.is_wildcard ? ' · 🦇' : ''}</span></div></div>
       <input data-bpm="${s.id}" value="${esc(s.bpm ?? '')}" placeholder="BPM" inputmode="decimal">
       <input data-key="${s.id}" value="${esc(s.camelot ?? '')}" placeholder="Key" class="key-pill">
-      <span class="votes-col">🔥 ${voteCount(s)}</span>
+      <span class="votes-col">▲ ${voteCount(s)}</span>
       <div class="acts">${links(s)}<button class="btn ghost small" data-status="graveyard" data-id2="${s.id}" title="Send to graveyard">🪦</button></div>
     </div>`;
   });
@@ -203,7 +204,7 @@ function songRow(s, actions) {
 function paneWild() {
   const list = songs.filter(s => s.status === 'pending').sort((a, b) => voteCount(b) - voteCount(a));
   $('pane').innerHTML = `<p class="hint">Songs 6–8 from each guest land here. Bless them onto the playlist or bury them.</p><div class="list">` +
-    (list.map(s => songRow(s, `<button class="btn purple small" data-status="approved" data-id2="${s.id}">🦇 Bless</button><button class="btn ghost small" data-status="graveyard" data-id2="${s.id}">🪦 Bury</button>`)).join('') || '<p class="empty">No wildcards waiting 🕯️</p>') + '</div>';
+    (list.map(s => songRow(s, `<button class="btn small bless" data-status="approved" data-id2="${s.id}">Bless ●</button><button class="btn small bury" data-status="graveyard" data-id2="${s.id}">Bury ●</button>`)).join('') || '<p class="empty">No wildcards waiting 🕯️</p>') + '</div>';
 }
 
 function paneSC() {
@@ -407,7 +408,7 @@ async function refresh() {
 }
 
 (async () => {
-  $('sub').textContent = DEMO ? 'Demo mode — your key is "demo"' : CONFIG.PARTY_NAME;
+  $('sub').textContent = DEMO ? 'Backstage · demo mode (key "demo")' : 'Backstage · ' + CONFIG.PARTY_NAME;
   let ok = false;
   try { ok = KEY && await api.djCheck(KEY); } catch { ok = false; }
   if (!ok) { $('main').innerHTML = '<div class="gate"><h2>🚫 The crypt is sealed</h2><p class="sub">This link is missing the DJ\'s secret key.</p></div>'; return; }

@@ -1,4 +1,5 @@
-import { safeUrl, CONFIG, DEMO, api, esc, toast, voteCount, downCount, PLATFORM, enc } from './shared.js?v=1793831667';
+import { analyzeSong } from './analyze.js?v=1793832217';
+import { safeUrl, CONFIG, DEMO, api, esc, toast, voteCount, downCount, PLATFORM, enc } from './shared.js?v=1793832217';
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -57,31 +58,75 @@ function buildSmartSet(list) {
   const ready = list.filter(s => +s.bpm && parseCam(s.camelot));
   const rest = list.filter(s => !(+s.bpm && parseCam(s.camelot)));
   if (ready.length < 2) return [...ready, ...rest];
-  const bpms = ready.map(s => +s.bpm);
-  const lo = Math.min(...bpms), hi = Math.max(...bpms), range = Math.max(hi - lo, 1);
+  const N = ready.length, t = (i) => i / (N - 1);
   const maxV = Math.max(...ready.map(voteCount), 1);
-  const popOf = (s) => s.birthday ? maxV : voteCount(s);
-  const N = ready.length;
-  const t = (i) => i / (N - 1);
-  const targetBpm = (i) => t(i) <= 0.75 ? lo + range * (t(i) / 0.75) : hi - range * 0.4 * ((t(i) - 0.75) / 0.25);
-  const peak = (i) => Math.max(0, 1 - Math.abs(t(i) - 0.68) / 0.22);
+  const popOf = (s) => (s.birthday ? maxV : voteCount(s)) / maxV;
+  // Energy as a rank within this crowd's songs (0 = chillest, 1 = hardest).
+  const eRaw = (s) => (+s.energy || 5) + (+s.bpm || 110) / 60;
+  const byE = [...ready].sort((a, b) => eRaw(a) - eRaw(b));
+  const eRank = new Map(byE.map((s, i) => [s.id, i / (N - 1)]));
+  // Energy arc: warm-up → build → first peak → short breather → main peak → strong finish.
+  const ARC = [[0, .15], [.2, .4], [.42, .78], [.5, .55], [.6, .8], [.75, 1], [.88, .95], [1, .6]];
+  const target = (x) => { for (let k = 1; k < ARC.length; k++) if (x <= ARC[k][0]) { const [x0, y0] = ARC[k - 1], [x1, y1] = ARC[k]; return y0 + (y1 - y0) * (x - x0) / (x1 - x0); } return .6; };
+  const peak = (x) => Math.max(0, 1 - Math.abs(x - .75) / .2);
 
-  const pool = [...ready].sort((a, b) => a.bpm - b.bpm || voteCount(a) - voteCount(b));
+  const pool = [...ready].sort((a, b) => eRank.get(a.id) - eRank.get(b.id));
   const out = [pool.shift()];
   while (pool.length) {
-    const i = out.length, prev = out[i - 1];
+    const i = out.length, prev = out[i - 1], x = t(i);
     let best = null, bestCost = Infinity;
     for (const c of pool) {
-      const pop = popOf(c) / maxV;
-      const cost = (keyDist(prev.camelot, c.camelot) ?? 6) * 2.2
-        + Math.min(bpmPct(prev.bpm, c.bpm) ?? 20, 20) * 0.5
-        + Math.abs(+c.bpm - targetBpm(i)) / range * 6
-        - pop * peak(i) * 5 + pop * (1 - peak(i)) * 1.5;
+      const kd = keyDist(prev.camelot, c.camelot) ?? 6;
+      const bp = Math.min(bpmPct(prev.bpm, c.bpm) ?? 20, 20);
+      const cost = kd * 2.2 + bp * 0.45
+        + Math.abs(eRank.get(c.id) - target(x)) * 9
+        - popOf(c) * peak(x) * 4 + popOf(c) * (1 - peak(x)) * 1.2;
       if (cost < bestCost) { bestCost = cost; best = c; }
     }
     out.push(best); pool.splice(pool.indexOf(best), 1);
   }
   return [...out, ...rest];
+}
+
+// =====================================================================
+// Audio analysis + auto ordering
+// =====================================================================
+let AUTO_ORDER = localStorage.getItem('spooky-auto-order') !== '0';
+let analyzing = false; const analyzeMiss = new Set();
+async function analyzeMissing(manual) {
+  if (analyzing) return;
+  const todo = songs.filter(s => s.status !== 'graveyard' && !(+s.bpm && s.camelot && s.energy != null) && !analyzeMiss.has(s.id));
+  if (!todo.length) { if (manual) toast('Everything is analyzed ✅'); return; }
+  analyzing = true; let n = 0;
+  toast(`🎧 Analyzing ${todo.length} song(s)…`);
+  for (const s of todo) {
+    try {
+      const r = await analyzeSong(s.artist, s.title);
+      if (!r) { analyzeMiss.add(s.id); continue; }
+      const f = {};
+      if (!+s.bpm) f.bpm = String(r.bpm);
+      if (!s.camelot) f.camelot = r.camelot;
+      if (s.energy == null) f.energy = String(r.energy);
+      await api.djUpdate(KEY, s.id, f); n++;
+    } catch { analyzeMiss.add(s.id); }
+  }
+  analyzing = false;
+  toast(`🎧 Analyzed ${n} of ${todo.length}${n < todo.length ? ' (no preview for the rest — fill those in by hand)' : ''}`);
+  songs = await api.load();
+  await autoOrder(n > 0);
+  render();
+}
+// Re-run the smart set when new songs arrive (or analysis changed), unless turned off.
+let lastOrderSig = '';
+async function autoOrder(force) {
+  if (!AUTO_ORDER) return;
+  const list = setOrder();
+  const sig = list.map(s => s.id + (s.bpm || '') + (s.camelot || '') + (s.energy ?? '')).sort().join();
+  if (!force && (sig === lastOrderSig || !list.some(s => s.set_position == null))) { lastOrderSig = sig; return; }
+  lastOrderSig = sig;
+  const ordered = buildSmartSet(list);
+  await api.djSetOrder(KEY, ordered.map(s => s.id));
+  songs = await api.load();
 }
 
 // =====================================================================
@@ -136,6 +181,8 @@ function paneSet() {
   const hasBpmKey = !!CONFIG.GETSONGBPM_API_KEY;
   let html = `<div class="toolbar">
       <button class="btn" id="smart">Build smart set</button>
+      <button class="btn ghost" id="analyze">🎧 Analyze BPM/key/energy</button>
+      <label class="hint"><input type="checkbox" id="auto-order" ${AUTO_ORDER ? 'checked' : ''}> Auto-order new songs</label>
       ${hasBpmKey ? '<button class="btn ghost" id="autofill">🔍 Auto-fill BPM/key</button>' : ''}
       <button class="btn ghost" id="csv">Export CSV</button>
       <span class="hint">Drag rows to reorder. Key accepts Camelot (8A) or musical (Am, F#).</span>
@@ -153,6 +200,7 @@ function paneSet() {
       <div class="meta"><div class="title">${esc(s.title)}</div><div class="artist">${esc(s.artist || '')} <span class="by">· ${s.birthday ? '🎂 ' : ''}${esc(s.submitted_by_name)}${s.is_wildcard ? ' · 🦇' : ''}</span></div></div>
       <input data-bpm="${s.id}" value="${esc(s.bpm ?? '')}" placeholder="BPM" inputmode="decimal">
       <input data-key="${s.id}" value="${esc(s.camelot ?? '')}" placeholder="Key" class="key-pill">
+      <span class="energy-pill" title="Energy 1–10">⚡${s.energy ?? '–'}</span>
       <span class="votes-col">▲ ${voteCount(s)} · 💀 ${downCount(s)}</span>
       <div class="acts">${links(s)}<button class="btn ghost small" data-status="graveyard" data-id2="${s.id}" title="Send to graveyard">🪦</button></div>
     </div>`;
@@ -171,6 +219,8 @@ function bindSetTools() {
     await refresh();
   });
   $('autofill')?.addEventListener('click', autofill);
+  $('analyze')?.addEventListener('click', () => analyzeMissing(true));
+  $('auto-order')?.addEventListener('change', (e) => { AUTO_ORDER = e.target.checked; localStorage.setItem('spooky-auto-order', AUTO_ORDER ? '1' : '0'); if (AUTO_ORDER) autoOrder(true); });
   $('csv')?.addEventListener('click', exportCsv);
 }
 
@@ -377,10 +427,30 @@ async function spSync(quiet) {
     }
     for (const id of done) await api.djUpdate(KEY, id, { spotify_synced: true });
     const removed = await spPrune();
-    if (uris.length || removed || !quiet) toast(`🟢 Spotify: +${uris.length} added${removed ? ` · −${removed} removed` : ''}`);
+    const moved = await spReorder();
+    if (uris.length || removed || moved || !quiet) toast(`🟢 Spotify: +${uris.length} added${removed ? ` · −${removed} removed` : ''}${moved ? ' · reordered to match your set' : ''}`);
     await refresh();
   } catch (e) { toast('💀 Spotify: ' + e.message); }
   syncing = false;
+}
+
+// Make the Spotify playlist follow the set order exactly.
+async function spReorder() {
+  const want = setOrder().map(s => s.spotify_uri).filter(u => u && u.startsWith('spotify:track:'));
+  const uniq = [...new Set(want)];
+  let base = `/playlists/${SP.playlist}/items`;
+  try { await sp(base + '?limit=1'); } catch (e) { if (e.status === 404 || e.status === 405) base = `/playlists/${SP.playlist}/tracks`; else throw e; }
+  const have = [];
+  for (let off = 0; ; off += 100) {
+    const items = (await sp(`${base}?limit=100&offset=${off}`))?.items || [];
+    for (const it of items) { const u = (it.track || it.item)?.uri; if (u) have.push(u); }
+    if (items.length < 100) break;
+  }
+  if (have.join() === uniq.join()) return false;
+  try { await sp(base, { method: 'PUT', body: JSON.stringify({ uris: uniq.slice(0, 100) }) }); }
+  catch (e) { if (base.endsWith('/items') && (e.status === 404 || e.status === 405)) { base = `/playlists/${SP.playlist}/tracks`; await sp(base, { method: 'PUT', body: JSON.stringify({ uris: uniq.slice(0, 100) }) }); } else throw e; }
+  for (let i = 100; i < uniq.length; i += 100) await sp(base, { method: 'POST', body: JSON.stringify({ uris: uniq.slice(i, i + 100) }) });
+  return true;
 }
 
 // Remove anything from the Spotify playlist that is no longer in the set (buried or deleted songs).
@@ -427,7 +497,7 @@ document.addEventListener('change', async (e) => {
 document.addEventListener('focusout', () => setTimeout(() => { if (renderQueued) render(); }, 50));
 
 async function refresh() {
-  try { songs = await api.load(); render(); if (SP.auto && SP.playlist && SP.token) spSync(true); }
+  try { songs = await api.load(); await autoOrder(false); render(); analyzeMissing(false); if (SP.auto && SP.playlist && SP.token) spSync(true); }
   catch (e) { toast('💀 ' + e.message); }
 }
 

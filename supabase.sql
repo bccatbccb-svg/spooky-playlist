@@ -16,6 +16,7 @@ create table if not exists songs (
   free_download text,
   bpm numeric,
   camelot text,
+  energy numeric,
   status text not null default 'approved' check (status in ('approved','pending','graveyard')),
   is_wildcard boolean default false,
   birthday boolean default false,
@@ -123,6 +124,7 @@ begin
     status         = coalesce(p_fields->>'status', status),
     bpm            = case when p_fields ? 'bpm' then nullif(p_fields->>'bpm','')::numeric else bpm end,
     camelot        = case when p_fields ? 'camelot' then nullif(p_fields->>'camelot','') else camelot end,
+    energy         = case when p_fields ? 'energy' then nullif(p_fields->>'energy','')::numeric else energy end,
     sc_liked       = coalesce((p_fields->>'sc_liked')::boolean, sc_liked),
     spotify_synced = coalesce((p_fields->>'spotify_synced')::boolean, spotify_synced),
     spotify_uri    = case when p_fields ? 'spotify_uri' then nullif(p_fields->>'spotify_uri','') else spotify_uri end

@@ -1,4 +1,4 @@
-import { safeUrl, CONFIG, DEMO, api, deviceId, resolveLink, finalize, canonicalKey, esc, toast, voteCount, downCount, CRINGE_AT, PLATFORM } from './shared.js?v=1793787903';
+import { safeUrl, CONFIG, DEMO, api, deviceId, resolveLink, finalize, canonicalKey, esc, toast, voteCount, downCount, CRINGE_AT, PLATFORM } from './shared.js?v=1793793221';
 
 const $ = (id) => document.getElementById(id);
 const me = deviceId();
@@ -98,7 +98,20 @@ function renderBoard() {
   if (!top.length) { $('board').innerHTML = ''; return; }
   const titles = ['1', '2', '3', '4', '5']; const ranks = ['Head Ghoul', 'Vampire Lord', 'Head Witch', 'Spider Queen', 'Zombie'];
   $('board').innerHTML = `<div class="card board"><div class="title-frame"><h2>Leaderboard</h2><span class="board-sub">of the Damned</span></div>
-    ${top.map((p, i) => `<div class="board-row"><span>${titles[i]}</span><b>${ranks[i]}</b><span class="dim">${esc(p.name)} · ${p.songs}♪ ${p.fire}▲</span></div>`).join('')}</div>`;
+    ${top.map((p, i) => `<div class="board-row"><span>${titles[i]}</span><b>${ranks[i]}</b><span class="dim">${esc(p.name)} · ${p.songs}♪ ${p.fire}▲</span></div>`).join('')}</div>${renderCursed()}`;
+}
+
+function renderCursed() {
+  const cursedSongs = songs.filter(s => downCount(s) > 0).sort((a, b) => downCount(b) - downCount(a)).slice(0, 5);
+  if (!cursedSongs.length) return '';
+  const ghouls = {};
+  for (const s of songs) { const d = downCount(s); if (!d) continue; const g = ghouls[s.submitted_by_name] ||= { name: s.submitted_by_name, d: 0 }; g.d += d; }
+  const worst = Object.values(ghouls).sort((a, b) => b.d - a.d).slice(0, 3);
+  const titles = ['Worst Taste Alive', 'Cursed Soul', 'Lost Spirit'];
+  return `<div class="card board cursed-board"><div class="title-frame"><h2>Most Cursed</h2><span class="board-sub">the songs the crowd fears</span></div>
+    ${cursedSongs.map((s, i) => `<div class="board-row"><span>${i + 1}</span><b>${esc(s.title)}<small>${esc(s.artist)} · by ${esc(s.submitted_by_name)}</small></b><span class="dim">${downCount(s)}💀</span></div>`).join('')}
+    <div class="board-sub cursed-split">Hall of Shame</div>
+    ${worst.map((g, i) => `<div class="board-row"><span>${i + 1}</span><b>${titles[i]}</b><span class="dim">${esc(g.name)} · ${g.d}💀</span></div>`).join('')}</div>`;
 }
 
 // ---------- search dropdown ----------

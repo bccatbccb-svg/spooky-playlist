@@ -1,4 +1,4 @@
-import { safeUrl, CONFIG, DEMO, api, deviceId, resolveLink, finalize, canonicalKey, esc, toast, voteCount, downCount, CRINGE_AT, PLATFORM } from './shared.js?v=1793793334';
+import { safeUrl, CONFIG, DEMO, api, deviceId, resolveLink, finalize, canonicalKey, esc, toast, voteCount, downCount, CRINGE_AT, PLATFORM } from './shared.js?v=1793793557';
 
 const $ = (id) => document.getElementById(id);
 const me = deviceId();
@@ -20,7 +20,7 @@ function badges(s) {
   const v = voteCount(s), out = [];
   if (downCount(s) >= CRINGE_AT) out.push('<span class="badge cringe">⚰️ Certified Cursed</span>');
   if (s.is_wildcard && s.status === 'approved') out.push('<span class="badge blessed">🦇 Blessed by the DJ</span>');
-  if (v >= 5) out.push('<span class="badge cursed">💀 Cursed Banger</span>');
+  if (v >= 5) out.push('<span class="badge cursed">🎃 Certified Banger</span>');
   else if (v >= 3) out.push('<span class="badge hit">🔥 Hit</span>');
   return out.join('');
 }

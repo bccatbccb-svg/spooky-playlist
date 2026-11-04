@@ -1,4 +1,4 @@
-import { safeUrl, CONFIG, DEMO, api, deviceId, resolveLink, finalize, canonicalKey, esc, toast, voteCount, downCount, CRINGE_AT, PLATFORM } from './shared.js?v=1793793557';
+import { safeUrl, CONFIG, DEMO, api, deviceId, resolveLink, finalize, canonicalKey, esc, toast, voteCount, downCount, CRINGE_AT, PLATFORM } from './shared.js?v=1793812686';
 
 const $ = (id) => document.getElementById(id);
 const me = deviceId();
@@ -42,7 +42,7 @@ function songCard(s, { canVote = true } = {}) {
     ? `<div class="votes"><button class="vote mine" disabled title="You summoned this">${v}</button><span class="down-count" title="Cursed votes">💀 ${d}</span></div>`
     : `<div class="votes"><button class="vote ${mine?.kind === 'vote' ? 'on' : ''}" data-vote="${s.id}" title="Upvote">${v}</button><button class="down ${mine?.kind === 'down' ? 'on' : ''}" data-down="${s.id}" title="Cursed vote">💀 ${d}</button></div>`;
   return `<div class="song ${s.submitted_by_device === me ? 'yours' : ''}">
-    <img class="art" src="${safeUrl(s.artwork || '')}" alt="" onerror="this.style.visibility='hidden'">
+    ${artBtn(s)}
     <div class="meta">
       <div class="title">${esc(s.title)}</div>
       <div class="artist">${esc(s.artist || 'Unknown artist')}</div>
@@ -202,7 +202,7 @@ function renderPreview() {
   if (dup?.status === 'graveyard') note = '<p class="error">🪦 This one\'s in the graveyard — the DJ buried it.</p>';
   else if (dup) note = `<p class="dup">👻 Already summoned by <b>${esc(dup.submitted_by_name)}</b> — submitting will upvote it instead (doesn't use a summon).</p>`;
   $('preview').innerHTML = `<div class="song preview">
-    <img class="art" src="${safeUrl(preview.artwork || '')}" alt="" onerror="this.style.visibility='hidden'">
+    ${artBtn(preview)}
     <div class="meta"><div class="title">${esc(preview.title)}</div><div class="artist">${esc(preview.artist || 'Unknown artist')}</div>
     <div class="chips">${linkChips(preview)}</div></div></div>${note}`;
   updateSubmit();
@@ -251,3 +251,40 @@ async function refresh() {
 }
 refresh();
 api.subscribe(refresh);
+
+// ---------- 30s previews (iTunes) ----------
+function artBtn(s) {
+  const k = esc(s.canonical_key || canonicalKey(s.artist, s.title));
+  return `<button type="button" class="art-wrap" data-play="${k}" data-artist="${esc(s.artist || '')}" data-title="${esc(s.title || '')}" aria-label="Play preview">
+    <img class="art" src="${safeUrl(s.artwork || '')}" alt="" onerror="this.style.visibility='hidden'"><span class="play-ic">▶</span></button>`;
+}
+const audio = new Audio(); let playingKey = null; const previewCache = {};
+function setPlayIcons() {
+  document.querySelectorAll('[data-play]').forEach(b => {
+    const on = b.dataset.play === playingKey;
+    b.classList.toggle('playing', on); const ic = b.querySelector('.play-ic'), t = on ? '❚❚' : '▶'; if (ic.textContent !== t && ic.textContent !== '…') ic.textContent = t;
+  });
+}
+audio.addEventListener('ended', () => { playingKey = null; setPlayIcons(); });
+new MutationObserver(setPlayIcons).observe(document.body, { childList: true, subtree: true });
+async function findPreview(artist, title) {
+  const r = await fetch('https://itunes.apple.com/search?entity=song&limit=5&term=' + encodeURIComponent(`${artist} ${title}`));
+  const j = await r.json();
+  const want = canonicalKey(artist, title);
+  const hit = (j.results || []).find(x => canonicalKey(x.artistName, x.trackName) === want) || (j.results || [])[0];
+  return hit?.previewUrl || '';
+}
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-play]'); if (!b) return;
+  e.preventDefault(); e.stopPropagation();
+  const k = b.dataset.play;
+  if (playingKey === k) { audio.pause(); playingKey = null; setPlayIcons(); return; }
+  audio.pause(); playingKey = k; setPlayIcons(); b.querySelector('.play-ic').textContent = '…';
+  try {
+    if (!(k in previewCache)) previewCache[k] = await findPreview(b.dataset.artist, b.dataset.title);
+    const url = previewCache[k];
+    if (!url) throw 0;
+    if (playingKey !== k) return;
+    audio.src = url; await audio.play(); b.querySelector('.play-ic').textContent = '❚❚'; setPlayIcons();
+  } catch { if (playingKey === k) playingKey = null; b.querySelector('.play-ic').textContent = '▶'; setPlayIcons(); toast('No preview for this one 👻'); }
+}, true);

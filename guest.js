@@ -1,4 +1,4 @@
-import { safeUrl, CONFIG, DEMO, api, deviceId, resolveLink, finalize, canonicalKey, esc, toast, isBday, voteCount, downCount, CRINGE_AT, PLATFORM } from './shared.js?v=1793831284';
+import { safeUrl, CONFIG, DEMO, api, deviceId, resolveLink, finalize, canonicalKey, esc, toast, isBday, voteCount, downCount, CRINGE_AT, PLATFORM } from './shared.js?v=1793831510';
 
 const $ = (id) => document.getElementById(id);
 const me = deviceId();
@@ -12,7 +12,35 @@ document.title = '🎃 ' + CONFIG.PARTY_NAME;
 
 const nameInput = $('name');
 nameInput.value = localStorage.getItem('spooky-name') || '';
-nameInput.addEventListener('input', () => { localStorage.setItem('spooky-name', nameInput.value.trim()); renderCounter(); });
+let bdayShown = false;
+nameInput.addEventListener('input', () => {
+  localStorage.setItem('spooky-name', nameInput.value.trim()); renderCounter();
+  if (isBday(nameInput.value)) { if (!bdayShown) bdayPopup(); } else bdayShown = false;
+});
+function bdayPopup() {
+  bdayShown = true;
+  document.querySelector('.bday-pop')?.remove();
+  const el = document.createElement('div');
+  el.className = 'bday-pop';
+  const bits = ['🎂', '🎃', '🦇', '👑', '🕯️', '🎉', '💀'];
+  el.innerHTML = `<div class="bday-rain">${Array.from({ length: 28 }, (_, i) =>
+      `<span style="left:${(i * 37) % 100}%;animation-delay:${(i % 7) * 0.25}s;animation-duration:${2.6 + (i % 5) * 0.4}s">${bits[i % bits.length]}</span>`).join('')}</div>
+    <div class="bday-card" role="dialog" aria-label="Birthday powers">
+      <div class="bday-crown">👑</div>
+      <h2>Happy Birthday,<br>Andras!</h2>
+      <p class="bday-sub">The crypt bows to you tonight 🎃</p>
+      <ul>
+        <li>🎂 <b>Unlimited summons</b>, no wildcards</li>
+        <li>⚡ Every song goes <b>straight onto the playlist</b></li>
+        <li>👑 Your picks get the <b>Birthday Boy's Pick</b> badge</li>
+        <li>🔥 The DJ saves them for the <b>peak of the night</b></li>
+      </ul>
+      <button class="btn big" type="button">Let's summon 🦇</button>
+    </div>`;
+  el.addEventListener('click', (e) => { if (e.target.closest('button') || e.target === el) { el.classList.add('out'); setTimeout(() => el.remove(), 300); } });
+  document.body.appendChild(el);
+}
+if (isBday(nameInput.value)) setTimeout(bdayPopup, 600);
 const myName = () => nameInput.value.trim();
 
 // ---------- badges ----------

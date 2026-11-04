@@ -280,3 +280,20 @@ footer { color: #555; }
 /* birthday boy */
 .badge.bday { background: #ff6a1a; color: #000; border-color: #ff6a1a; box-shadow: 0 0 10px #ff6a1a; font-weight: 700; }
 .song.is-bday { box-shadow: 0 0 0 1.5px #ff6a1a, 0 0 18px rgba(255,106,26,.55) !important; }
+/* birthday pop-up */
+.bday-pop { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 20px; background: rgba(0,0,0,.78); backdrop-filter: blur(4px); animation: bdayFade .3s ease; overflow: hidden; }
+.bday-pop.out { animation: bdayFade .3s ease reverse forwards; }
+.bday-rain span { position: absolute; top: -40px; font-size: 26px; animation: bdayFall linear infinite; pointer-events: none; }
+.bday-card { position: relative; max-width: 360px; width: 100%; text-align: center; background: #000; border: 2px solid #ff6a1a; border-radius: 18px; padding: 26px 20px 20px;
+  box-shadow: 0 0 30px rgba(255,106,26,.7), inset 0 0 20px rgba(255,106,26,.25); animation: bdayPop .6s cubic-bezier(.2,1.6,.4,1); }
+.bday-crown { font-size: 54px; line-height: 1; animation: bdayBob 1.6s ease-in-out infinite; filter: drop-shadow(0 0 12px #ff6a1a); }
+.bday-card h2 { margin: 8px 0 4px; font-size: 32px; line-height: 1.05; color: #fff; text-shadow: 0 0 14px #ff6a1a; }
+.bday-sub { color: var(--dim); margin: 0 0 14px; }
+.bday-card ul { list-style: none; padding: 0; margin: 0 0 18px; text-align: left; }
+.bday-card li { padding: 8px 0; border-bottom: 1px dashed #333; font-size: 14px; color: #ddd; }
+.bday-card li b { color: #ff6a1a; }
+.bday-card .btn { width: 100%; }
+@keyframes bdayFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes bdayPop { 0% { transform: scale(.4) rotate(-6deg); opacity: 0; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+@keyframes bdayBob { 50% { transform: translateY(-8px) rotate(6deg); } }
+@keyframes bdayFall { to { transform: translateY(110vh) rotate(360deg); } }

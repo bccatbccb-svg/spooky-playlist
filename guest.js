@@ -129,7 +129,8 @@ $('results').addEventListener('click', (e) => {
   preview = finalize({ platform: 'search', source_url: x.trackViewUrl, title: x.trackName, artist: x.artistName,
     artwork: (x.artworkUrl100 || '').replace(/\d+x\d+bb/, '600x600bb'), links: { apple: x.trackViewUrl }, spotify_uri: '' });
   $('q').value = `${x.trackName} — ${x.artistName}`;
-  showFields(preview, 'Got it! Fix the artist/title if needed:');
+  $('manual').hidden = true;
+  renderPreview();
 });
 document.addEventListener('click', (e) => { if (!e.target.closest('.search-wrap')) $('results').hidden = true; });
 

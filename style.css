@@ -246,3 +246,12 @@ footer { color: #555; }
 @media (max-width: 720px) { .set-row .votes-col { grid-column: 3; } .set-row .acts { grid-column: 4 / -1; justify-content: flex-end; } }
 .board-row { flex-wrap: nowrap !important; } .board-row .dim { width: auto !important; }
 .ptile.spotify svg circle { fill: none !important; stroke: #fff; stroke-width: 1.6; }
+/* responsive poster header */
+.poster-hero { width: 100%; max-width: 600px; padding: env(safe-area-inset-top) 0 0 !important; overflow: hidden; }
+.poster-img { width: min(100%, calc(70svh * 765 / 1024)); max-width: 100%; height: auto; aspect-ratio: 765 / 1024; margin: 0 auto;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 92%, transparent 100%), linear-gradient(to right, transparent 0, #000 4%, #000 96%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to bottom, #000 0, #000 92%, transparent 100%), linear-gradient(to right, transparent 0, #000 4%, #000 96%, transparent 100%);
+  mask-composite: intersect; }
+@media (orientation: landscape) and (max-height: 600px) { .poster-img { width: min(100%, calc(85svh * 765 / 1024)); } }
+.poster-hero + main { margin-top: 4px; }

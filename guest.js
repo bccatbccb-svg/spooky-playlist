@@ -1,4 +1,4 @@
-import { safeUrl, CONFIG, DEMO, api, deviceId, resolveLink, finalize, canonicalKey, esc, toast, isBday, voteCount, downCount, CRINGE_AT, PLATFORM } from './shared.js?v=1793831619';
+import { safeUrl, CONFIG, DEMO, api, deviceId, resolveLink, finalize, canonicalKey, esc, toast, isBday, voteCount, downCount, CRINGE_AT, PLATFORM } from './shared.js?v=1793831667';
 
 const $ = (id) => document.getElementById(id);
 const me = deviceId();
@@ -33,7 +33,7 @@ function bdayPopup() {
         <li>🎂 <b>Unlimited summons</b>, no wildcards</li>
         <li>⚡ Every song goes <b>straight onto the playlist</b></li>
         <li>👑 Your picks get the <b>Birthday Boy's Pick</b> badge</li>
-        <li>🔥 The DJ saves them for the <b>peak of the night</b></li>
+        <li>🔥 Request any of them and the DJ plays it <b>whenever you want</b></li>
       </ul>
       <button class="btn big" type="button">Let's summon 🦇</button>
     </div>`;

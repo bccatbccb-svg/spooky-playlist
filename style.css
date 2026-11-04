@@ -261,3 +261,7 @@ footer { color: #555; }
 .down.on { border-color: #fff; background: #222; box-shadow: 0 0 10px rgba(255,255,255,.35); }
 .down-count { color: #888; font-size: 12px; text-align: center; }
 .badge.cringe { border-color: #fff !important; color: #fff !important; }
+.graveyard summary { position: relative; }
+.grave-img { display: block; width: 100%; height: auto; border-radius: 14px;
+  -webkit-mask-image: radial-gradient(ellipse 75% 70% at 50% 50%, #000 55%, transparent 100%); mask-image: radial-gradient(ellipse 75% 70% at 50% 50%, #000 55%, transparent 100%); }
+.graveyard .grave-label { position: absolute; left: 0; right: 0; bottom: 14%; margin: 0; font-size: 30px; color: #fff; text-shadow: 0 0 12px #000, 0 0 24px rgba(160,80,255,.8); }

@@ -1,4 +1,4 @@
-import { safeUrl, CONFIG, DEMO, api, deviceId, resolveLink, finalize, canonicalKey, esc, toast, voteCount, downCount, CRINGE_AT, PLATFORM } from './shared.js?v=1793786866';
+import { safeUrl, CONFIG, DEMO, api, deviceId, resolveLink, finalize, canonicalKey, esc, toast, voteCount, downCount, CRINGE_AT, PLATFORM } from './shared.js?v=1793787376';
 
 const $ = (id) => document.getElementById(id);
 const me = deviceId();
@@ -18,7 +18,7 @@ const myName = () => nameInput.value.trim();
 // ---------- badges ----------
 function badges(s) {
   const v = voteCount(s), out = [];
-  if (downCount(s) >= CRINGE_AT) out.push('<span class="badge cringe">🤢 Certified Cringe</span>');
+  if (downCount(s) >= CRINGE_AT) out.push('<span class="badge cringe">⚰️ Certified Cursed</span>');
   if (s.is_wildcard && s.status === 'approved') out.push('<span class="badge blessed">🦇 Blessed by the DJ</span>');
   if (v >= 5) out.push('<span class="badge cursed">💀 Cursed Banger</span>');
   else if (v >= 3) out.push('<span class="badge hit">🔥 Hit</span>');
@@ -39,8 +39,8 @@ function songCard(s, { canVote = true } = {}) {
   const d = downCount(s);
   const others = (s.votes || []).filter(x => x.kind === 'vote').map(x => x.name);
   const voteBtn = !canVote ? '' : mine?.kind === 'submit'
-    ? `<div class="votes"><button class="vote mine" disabled title="You summoned this">${v}</button><span class="down-count" title="Cringe votes">💀 ${d}</span></div>`
-    : `<div class="votes"><button class="vote ${mine?.kind === 'vote' ? 'on' : ''}" data-vote="${s.id}" title="Upvote">${v}</button><button class="down ${mine?.kind === 'down' ? 'on' : ''}" data-down="${s.id}" title="Cringe vote">💀 ${d}</button></div>`;
+    ? `<div class="votes"><button class="vote mine" disabled title="You summoned this">${v}</button><span class="down-count" title="Cursed votes">💀 ${d}</span></div>`
+    : `<div class="votes"><button class="vote ${mine?.kind === 'vote' ? 'on' : ''}" data-vote="${s.id}" title="Upvote">${v}</button><button class="down ${mine?.kind === 'down' ? 'on' : ''}" data-down="${s.id}" title="Cursed vote">💀 ${d}</button></div>`;
   return `<div class="song ${s.submitted_by_device === me ? 'yours' : ''}">
     <img class="art" src="${safeUrl(s.artwork || '')}" alt="" onerror="this.style.visibility='hidden'">
     <div class="meta">

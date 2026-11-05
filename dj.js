@@ -1,5 +1,5 @@
-import { analyzeSong, guessVibe, VIBES } from './analyze.js?v=1793890091';
-import { safeUrl, CONFIG, DEMO, api, esc, toast, voteCount, downCount, PLATFORM, enc } from './shared.js?v=1793890091';
+import { analyzeSong, guessVibe, VIBES } from './analyze.js?v=1793893095';
+import { safeUrl, CONFIG, DEMO, api, esc, toast, voteCount, downCount, PLATFORM, enc } from './shared.js?v=1793893095';
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);

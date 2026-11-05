@@ -301,3 +301,6 @@ footer { color: #555; }
 .vibe-sel { background: #111; color: #fff; border: 1px solid #333; border-radius: 8px; font-size: 12px; padding: 4px; max-width: 130px; }
 .wild-who { font-family: Anton, sans-serif; font-weight: 400; font-size: 18px; margin: 18px 0 6px; color: #fff; }
 .wild-who .dim { font-family: 'Space Grotesk', sans-serif; font-size: 13px; }
+/* vibe + energy get their own line under the song */
+.set-row .vibe-sel { grid-column: 3; width: 100%; max-width: 220px; min-height: 32px; justify-self: start; }
+.set-row .energy-pill { grid-column: 4 / -1; justify-self: center; font-size: 13px; }

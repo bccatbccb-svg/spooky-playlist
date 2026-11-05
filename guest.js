@@ -1,4 +1,4 @@
-import { safeUrl, CONFIG, DEMO, api, deviceId, resolveLink, finalize, canonicalKey, esc, toast, isBday, voteCount, downCount, CRINGE_AT, PLATFORM } from './shared.js?v=1793889993';
+import { safeUrl, CONFIG, DEMO, api, deviceId, resolveLink, finalize, canonicalKey, esc, toast, isBday, voteCount, downCount, CRINGE_AT, PLATFORM } from './shared.js?v=1793890091';
 
 const $ = (id) => document.getElementById(id);
 const me = deviceId();
@@ -108,12 +108,12 @@ function render() {
 function renderCounter() {
   const n = songs.filter(s => s.submitted_by_device === me).length;
   const auto = Math.max(0, CONFIG.AUTO_LIMIT - n);
-  const wild = Math.min(CONFIG.TOTAL_LIMIT - CONFIG.AUTO_LIMIT, CONFIG.TOTAL_LIMIT - n);
+  const blessed = songs.filter(s => s.submitted_by_device === me && s.is_wildcard && s.status === 'approved').length;
   if (isBday(myName())) { $('counter').innerHTML = '🎂 Unlimited summons · your night'; updateSubmit(); return; }
   $('counter').innerHTML = auto > 0
     ? `${auto} of ${CONFIG.AUTO_LIMIT} summons left`
-    : wild > 0 ? `${wild} wildcard${wild > 1 ? 's' : ''} left · DJ decides`
-    : `All summons used — upvote ▲`;
+    : blessed < CONFIG.WILD_BLESS ? `🃏 Wildcards: send as many as you like · DJ blesses ${CONFIG.WILD_BLESS} (${blessed}/${CONFIG.WILD_BLESS})`
+    : `🦇 All ${CONFIG.WILD_BLESS} wildcards blessed — upvote ▲`;
   updateSubmit();
 }
 
@@ -243,7 +243,7 @@ function updateSubmit() {
   const btn = $('submit');
   const n = songs.filter(s => s.submitted_by_device === me).length;
   const dup = findDup();
-  btn.disabled = !myName() || !preview?.title || dup?.status === 'graveyard' || (!dup && !isBday(myName()) && n >= CONFIG.TOTAL_LIMIT);
+  btn.disabled = !myName() || !preview?.title || dup?.status === 'graveyard' || (!dup && !isBday(myName()) && (n >= CONFIG.TOTAL_LIMIT || songs.filter(s => s.submitted_by_device === me && s.is_wildcard && s.status === 'approved').length >= CONFIG.WILD_BLESS));
   btn.textContent = !myName() ? 'Enter your name first' : dup ? 'Upvote it instead' : !isBday(myName()) && n >= CONFIG.AUTO_LIMIT ? 'Send as wildcard' : 'Summon it';
 }
 

@@ -1,5 +1,5 @@
-import { analyzeSong, guessVibe, VIBES } from './analyze.js?v=1793889993';
-import { safeUrl, CONFIG, DEMO, api, esc, toast, voteCount, downCount, PLATFORM, enc } from './shared.js?v=1793889993';
+import { analyzeSong, guessVibe, VIBES } from './analyze.js?v=1793890091';
+import { safeUrl, CONFIG, DEMO, api, esc, toast, voteCount, downCount, PLATFORM, enc } from './shared.js?v=1793890091';
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -282,9 +282,19 @@ function songRow(s, actions) {
 }
 
 function paneWild() {
-  const list = songs.filter(s => s.status === 'pending').sort((a, b) => voteCount(b) - voteCount(a));
-  $('pane').innerHTML = `<p class="hint">Songs 6–8 from each guest land here. Bless them onto the playlist or bury them.</p><div class="list">` +
-    (list.map(s => songRow(s, `<button class="btn small bless" data-status="approved" data-id2="${s.id}">Bless ●</button><button class="btn small bury" data-status="graveyard" data-id2="${s.id}">Bury ●</button>`)).join('') || '<p class="empty">No wildcards waiting 🕯️</p>') + '</div>';
+  const list = songs.filter(s => s.status === 'pending');
+  const blessedBy = (dev) => songs.filter(s => s.submitted_by_device === dev && s.is_wildcard && s.status === 'approved').length;
+  const groups = {};
+  for (const s of list) (groups[s.submitted_by_device] ||= []).push(s);
+  const order = Object.values(groups).sort((a, b) => b.length - a.length);
+  const LIM = CONFIG.WILD_BLESS || 3;
+  $('pane').innerHTML = `<p class="hint">After 5 songs, guests can send as many wildcards as they like. You bless up to ${LIM} per guest — bury the rest.</p>` +
+    (order.map(g => {
+      const n = blessedBy(g[0].submitted_by_device), full = n >= LIM;
+      g.sort((a, b) => voteCount(b) - voteCount(a));
+      return `<h3 class="wild-who">${esc(g[0].submitted_by_name)} <span class="dim">· ${n}/${LIM} blessed${full ? ' — full' : ''}</span></h3><div class="list">` +
+        g.map(s => songRow(s, `<button class="btn small bless" data-status="approved" data-id2="${s.id}" ${full ? 'disabled title="Already blessed ' + LIM + '"' : ''}>Bless ●</button><button class="btn small bury" data-status="graveyard" data-id2="${s.id}">Bury ●</button>`)).join('') + '</div>';
+    }).join('') || '<p class="empty">No wildcards waiting 🕯️</p>');
 }
 
 function paneSC() {

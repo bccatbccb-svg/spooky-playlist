@@ -67,7 +67,9 @@ begin
     if v_count >= 60 then raise exception 'Even birthday boys have limits (60)'; end if;
     v_wild := false;
   else
-    if v_count >= 8 then raise exception 'You''ve used all 8 summons'; end if;
+    if v_count >= 40 then raise exception 'You''ve hit the 40-song limit'; end if;
+    if (select count(*) from songs where submitted_by_device = p_device and is_wildcard and status = 'approved') >= 3
+      then raise exception 'All 3 of your wildcards are blessed already'; end if;
     v_wild := v_count >= 5;
   end if;
   insert into songs(canonical_key,title,artist,artwork,platform,source_url,links,spotify_uri,free_download,

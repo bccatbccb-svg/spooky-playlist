@@ -1,4 +1,4 @@
-import CONFIG from './config.js?v=1793889993';
+import CONFIG from './config.js?v=1793890091';
 export { CONFIG };
 export const DEMO = !CONFIG.SUPABASE_URL;
 
@@ -186,7 +186,8 @@ function demoApi() {
           submitted_by_device: me, created_at: new Date().toISOString(), votes: [{ name, device_id: me, kind: 'submit', created_at: new Date().toISOString() }] });
         write(db); return { result: 'added' };
       }
-      if (n >= CONFIG.TOTAL_LIMIT) throw new Error(`You've used all ${CONFIG.TOTAL_LIMIT} summons`);
+      if (n >= CONFIG.TOTAL_LIMIT) throw new Error(`You've hit the ${CONFIG.TOTAL_LIMIT}-song limit`);
+      if (db.songs.filter(s => s.submitted_by_device === me && s.is_wildcard && s.status === 'approved').length >= CONFIG.WILD_BLESS) throw new Error('All your wildcards are blessed already');
       const wild = n >= CONFIG.AUTO_LIMIT;
       const id = crypto.randomUUID?.() || String(Date.now());
       db.songs.push({

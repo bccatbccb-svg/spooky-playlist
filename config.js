@@ -10,5 +10,6 @@ export default {
   GETSONGBPM_API_KEY: "",    // optional, getsongbpm.com/api — auto-fills BPM/key
 
   AUTO_LIMIT: 5,             // songs that go straight onto the list
-  TOTAL_LIMIT: 8,            // after AUTO_LIMIT, the rest are wildcards needing DJ approval
+  WILD_BLESS: 3,             // after AUTO_LIMIT, guests send unlimited wildcards; the DJ blesses up to this many each
+  TOTAL_LIMIT: 40,           // safety cap per guest
 };

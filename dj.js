@@ -1,5 +1,5 @@
-import { analyzeSong } from './analyze.js?v=1793832217';
-import { safeUrl, CONFIG, DEMO, api, esc, toast, voteCount, downCount, PLATFORM, enc } from './shared.js?v=1793832217';
+import { analyzeSong, guessVibe, VIBES } from './analyze.js?v=1793889993';
+import { safeUrl, CONFIG, DEMO, api, esc, toast, voteCount, downCount, PLATFORM, enc } from './shared.js?v=1793889993';
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -54,6 +54,13 @@ function transition(a, b) {
 }
 
 // Smart set: warm-up → build → peak (most-voted) → cool-down, chained by key + BPM.
+// How far apart two vibes feel (0 = same world, 3 = jarring).
+const VIBE_GAP = { 'clubpop|house': 1, 'clubpop|dancehall': 1, 'clubpop|hiphop': 1, 'clubpop|throwback': 1.5, 'clubpop|latin': 1,
+  'house|dancehall': 1.5, 'house|hiphop': 2, 'house|throwback': 2, 'house|latin': 1.5,
+  'dancehall|hiphop': 1, 'dancehall|latin': 0.5, 'dancehall|throwback': 3,
+  'hiphop|latin': 1.5, 'hiphop|throwback': 2.5, 'throwback|latin': 3 };
+function vibeGap(a, b) { return a === b ? 0 : VIBE_GAP[a + '|' + b] ?? VIBE_GAP[b + '|' + a] ?? 2; }
+
 function buildSmartSet(list) {
   const ready = list.filter(s => +s.bpm && parseCam(s.camelot));
   const rest = list.filter(s => !(+s.bpm && parseCam(s.camelot)));
@@ -70,16 +77,36 @@ function buildSmartSet(list) {
   const target = (x) => { for (let k = 1; k < ARC.length; k++) if (x <= ARC[k][0]) { const [x0, y0] = ARC[k - 1], [x1, y1] = ARC[k]; return y0 + (y1 - y0) * (x - x0) / (x1 - x0); } return .6; };
   const peak = (x) => Math.max(0, 1 - Math.abs(x - .75) / .2);
 
-  const pool = [...ready].sort((a, b) => eRank.get(a.id) - eRank.get(b.id));
+  // Vibes: play same-vibe songs in runs of 3–5, move between vibes that sit close together,
+  // and sprinkle Latin evenly through the night instead of one big block.
+  const vibeOf = (s) => VIBES[s.vibe] ? s.vibe : 'clubpop';
+  const latinCount = ready.filter(s => vibeOf(s) === 'latin').length;
+  const latinGap = latinCount ? N / latinCount : N;
+  const pool = [...ready].sort((a, b) => (vibeOf(a) === 'latin') - (vibeOf(b) === 'latin') || eRank.get(a.id) - eRank.get(b.id));
   const out = [pool.shift()];
   while (pool.length) {
     const i = out.length, prev = out[i - 1], x = t(i);
+    // "home" vibe = the last non-Latin vibe, so a Latin song in the middle of a run doesn't break it
+    let home = null, run = 0, lastLatin = -1e9;
+    for (let k = out.length - 1; k >= 0; k--) { const v = vibeOf(out[k]); if (v === 'latin') { if (lastLatin < 0) lastLatin = k; continue; } if (!home) home = v; if (v === home) run++; else break; }
+    for (let k = out.length - 1; k >= 0 && lastLatin < 0; k--) if (vibeOf(out[k]) === 'latin') lastLatin = k;
     let best = null, bestCost = Infinity;
     for (const c of pool) {
+      const v = vibeOf(c);
       const kd = keyDist(prev.camelot, c.camelot) ?? 6;
       const bp = Math.min(bpmPct(prev.bpm, c.bpm) ?? 20, 20);
-      const cost = kd * 2.2 + bp * 0.45
-        + Math.abs(eRank.get(c.id) - target(x)) * 9
+      let vc;
+      if (v === 'latin') {
+        const since = i - lastLatin;
+        vc = since < latinGap * 0.6 ? 9 : since >= latinGap ? -3 : 1;
+        if (vibeOf(prev) === 'latin') vc += 6;
+      } else if (!home || v === home) {
+        vc = run >= 5 ? 10 : run >= 4 ? 3 : -1.5;
+      } else {
+        vc = vibeGap(home, v) * 2.5 + (run < 3 ? 4 : 0);
+      }
+      const cost = kd * 2 + bp * 0.45 + vc
+        + Math.abs(eRank.get(c.id) - target(x)) * 8
         - popOf(c) * peak(x) * 4 + popOf(c) * (1 - peak(x)) * 1.2;
       if (cost < bestCost) { bestCost = cost; best = c; }
     }
@@ -95,18 +122,19 @@ let AUTO_ORDER = localStorage.getItem('spooky-auto-order') !== '0';
 let analyzing = false; const analyzeMiss = new Set();
 async function analyzeMissing(manual) {
   if (analyzing) return;
-  const todo = songs.filter(s => s.status !== 'graveyard' && !(+s.bpm && s.camelot && s.energy != null) && !analyzeMiss.has(s.id));
+  const todo = songs.filter(s => s.status !== 'graveyard' && !(+s.bpm && s.camelot && s.energy != null && s.vibe) && !analyzeMiss.has(s.id));
   if (!todo.length) { if (manual) toast('Everything is analyzed ✅'); return; }
   analyzing = true; let n = 0;
   toast(`🎧 Analyzing ${todo.length} song(s)…`);
   for (const s of todo) {
     try {
-      const r = await analyzeSong(s.artist, s.title);
-      if (!r) { analyzeMiss.add(s.id); continue; }
       const f = {};
-      if (!+s.bpm) f.bpm = String(r.bpm);
-      if (!s.camelot) f.camelot = r.camelot;
-      if (s.energy == null) f.energy = String(r.energy);
+      if (!s.vibe) { try { f.vibe = await guessVibe(s.artist, s.title); } catch { /* skip */ } }
+      const r = (+s.bpm && s.camelot && s.energy != null) ? {} : await analyzeSong(s.artist, s.title);
+      if (!r) { if (f.vibe) await api.djUpdate(KEY, s.id, f); analyzeMiss.add(s.id); continue; }
+      if (!+s.bpm && r.bpm) f.bpm = String(r.bpm);
+      if (!s.camelot && r.camelot) f.camelot = r.camelot;
+      if (s.energy == null && r.energy) f.energy = String(r.energy);
       await api.djUpdate(KEY, s.id, f); n++;
     } catch { analyzeMiss.add(s.id); }
   }
@@ -121,7 +149,7 @@ let lastOrderSig = '';
 async function autoOrder(force) {
   if (!AUTO_ORDER) return;
   const list = setOrder();
-  const sig = list.map(s => s.id + (s.bpm || '') + (s.camelot || '') + (s.energy ?? '')).sort().join();
+  const sig = list.map(s => s.id + (s.bpm || '') + (s.camelot || '') + (s.energy ?? '') + (s.vibe || '')).sort().join();
   if (!force && (sig === lastOrderSig || !list.some(s => s.set_position == null))) { lastOrderSig = sig; return; }
   lastOrderSig = sig;
   const ordered = buildSmartSet(list);
@@ -200,6 +228,7 @@ function paneSet() {
       <div class="meta"><div class="title">${esc(s.title)}</div><div class="artist">${esc(s.artist || '')} <span class="by">· ${s.birthday ? '🎂 ' : ''}${esc(s.submitted_by_name)}${s.is_wildcard ? ' · 🦇' : ''}</span></div></div>
       <input data-bpm="${s.id}" value="${esc(s.bpm ?? '')}" placeholder="BPM" inputmode="decimal">
       <input data-key="${s.id}" value="${esc(s.camelot ?? '')}" placeholder="Key" class="key-pill">
+      <select data-vibe="${s.id}" class="vibe-sel" title="Vibe">${Object.entries(VIBES).map(([k, v]) => `<option value="${k}" ${s.vibe === k ? 'selected' : ''}>${v.label}</option>`).join('')}${s.vibe ? '' : '<option selected value="">? vibe</option>'}</select>
       <span class="energy-pill" title="Energy 1–10">⚡${s.energy ?? '–'}</span>
       <span class="votes-col">▲ ${voteCount(s)} · 💀 ${downCount(s)}</span>
       <div class="acts">${links(s)}<button class="btn ghost small" data-status="graveyard" data-id2="${s.id}" title="Send to graveyard">🪦</button></div>
@@ -492,7 +521,8 @@ document.addEventListener('change', async (e) => {
     const c = toCamelot(el.value); if (el.value.trim() && !c) return toast('Key not recognised — try 8A, 11B, Am, F#…');
     el.value = c; await update(el.dataset.key, { camelot: c }, true);
   }
-  if (el.dataset.bpm || el.dataset.key) { songs = await api.load(); render(); }
+  if (el.dataset.vibe) await update(el.dataset.vibe, { vibe: el.value }, true);
+  if (el.dataset.bpm || el.dataset.key || el.dataset.vibe) { songs = await api.load(); render(); }
 });
 document.addEventListener('focusout', () => setTimeout(() => { if (renderQueued) render(); }, 50));
 

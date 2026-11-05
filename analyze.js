@@ -138,3 +138,27 @@ export async function analyzeSong(artist, title) {
   const { bpm, flux } = detectBpm(x);
   return { bpm, camelot: detectKey(x), energy: detectEnergy(x, flux, bpm) };
 }
+
+// ---------- vibe tagging ----------
+export const VIBES = {
+  latin: { label: '🌶️ Latin', sprinkle: true },
+  clubpop: { label: '🪩 Club pop' },
+  throwback: { label: '📼 Throwback' },
+  dancehall: { label: '🌴 Dancehall' },
+  house: { label: '🎛️ House / Afro' },
+  hiphop: { label: '🎤 Hip-hop / R&B' },
+};
+export async function guessVibe(artist, title) {
+  const clean = (s) => String(s || '').replace(/\(.*?\)|\[.*?\]/g, '').replace(/feat\..*$/i, '').trim();
+  const r = await fetch('https://itunes.apple.com/search?entity=song&limit=3&term=' + encodeURIComponent(`${clean(artist).split(/,|&/)[0]} ${clean(title)}`));
+  const hit = ((await r.json()).results || [])[0];
+  const g = (hit?.primaryGenreName || '').toLowerCase();
+  const year = +(hit?.releaseDate || '').slice(0, 4) || 0;
+  const text = `${artist} ${title}`.toLowerCase();
+  if (/latin|reggaeton|urbano|salsa|bachata|cumbia|regional mexicano/.test(g) || /[áéíóúñ¿¡]/.test(text)) return 'latin';
+  if (/reggae|dancehall|soca/.test(g)) return 'dancehall';
+  if (/house|dance|electronic|techno|afro/.test(g)) return year && year < 2000 ? 'throwback' : 'house';
+  if (year && year < 2000) return 'throwback';
+  if (/hip-hop|rap|r&b|soul/.test(g)) return 'hiphop';
+  return 'clubpop';
+}
